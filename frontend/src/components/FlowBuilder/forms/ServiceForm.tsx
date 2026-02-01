@@ -51,7 +51,6 @@ export function ServiceForm({ data, onSave }: ServiceFormProps) {
         <input
           type="text"
           {...register('name')}
-          onBlur={handleBlur}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="my-service"
         />
@@ -66,10 +65,6 @@ export function ServiceForm({ data, onSave }: ServiceFormProps) {
         </label>
         <select
           {...register('protocol')}
-          onChange={(e) => {
-            register('protocol').onChange(e);
-            handleBlur();
-          }}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="http">HTTP</option>
@@ -89,7 +84,6 @@ export function ServiceForm({ data, onSave }: ServiceFormProps) {
         <input
           type="text"
           {...register('host')}
-          onBlur={handleBlur}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="api.example.com"
         />
@@ -105,7 +99,6 @@ export function ServiceForm({ data, onSave }: ServiceFormProps) {
         <input
           type="number"
           {...register('port', { valueAsNumber: true })}
-          onBlur={handleBlur}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="80"
         />
@@ -121,7 +114,6 @@ export function ServiceForm({ data, onSave }: ServiceFormProps) {
         <input
           type="text"
           {...register('path')}
-          onBlur={handleBlur}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="/v1"
         />
@@ -136,7 +128,6 @@ export function ServiceForm({ data, onSave }: ServiceFormProps) {
             <input
               type="number"
               {...register('retries', { valueAsNumber: true })}
-              onBlur={handleBlur}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="5"
             />
@@ -149,7 +140,6 @@ export function ServiceForm({ data, onSave }: ServiceFormProps) {
             <input
               type="number"
               {...register('connect_timeout', { valueAsNumber: true })}
-              onBlur={handleBlur}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="60000"
             />
@@ -162,7 +152,6 @@ export function ServiceForm({ data, onSave }: ServiceFormProps) {
             <input
               type="number"
               {...register('write_timeout', { valueAsNumber: true })}
-              onBlur={handleBlur}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="60000"
             />
@@ -175,7 +164,6 @@ export function ServiceForm({ data, onSave }: ServiceFormProps) {
             <input
               type="number"
               {...register('read_timeout', { valueAsNumber: true })}
-              onBlur={handleBlur}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="60000"
             />
@@ -183,8 +171,14 @@ export function ServiceForm({ data, onSave }: ServiceFormProps) {
         </div>
       </div>
 
-      <div className="text-sm text-gray-500 italic">
-        Changes are saved when you click outside the field
+      <div className="pt-4 border-t border-gray-200">
+        <button
+          type="submit"
+          disabled={!isDirty}
+          className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
+        >
+          {isDirty ? 'Save Changes' : 'No Changes'}
+        </button>
       </div>
     </form>
   );

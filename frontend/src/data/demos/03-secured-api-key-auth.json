@@ -1,0 +1,186 @@
+{
+  "id": "secured-api-key-auth",
+  "name": "Secured API with Key Authentication",
+  "description": "Require API keys for authentication. Learn how consumers and credentials work.",
+  "difficulty": "intermediate",
+  "category": "security",
+  "tags": ["authentication", "api-key", "security", "consumer"],
+
+  "learningObjectives": [
+    "Understand the Consumer model in Kong",
+    "Configure key-based authentication",
+    "Learn how authentication plugins work",
+    "Manage API consumers and their credentials"
+  ],
+
+  "flow": {
+    "nodes": [
+      {
+        "id": "service-1",
+        "type": "service",
+        "position": { "x": 450, "y": 200 },
+        "data": {
+          "label": "Protected API",
+          "type": "service",
+          "config": {
+            "name": "protected-api",
+            "protocol": "https",
+            "host": "httpbin.org",
+            "port": 443
+          }
+        }
+      },
+      {
+        "id": "route-1",
+        "type": "route",
+        "position": { "x": 100, "y": 200 },
+        "data": {
+          "label": "Secured Route",
+          "type": "route",
+          "config": {
+            "name": "secured-route",
+            "protocols": ["http", "https"],
+            "methods": ["GET", "POST", "PUT", "DELETE"],
+            "paths": ["/secure"],
+            "strip_path": false
+          }
+        }
+      },
+      {
+        "id": "plugin-1",
+        "type": "plugin",
+        "position": { "x": 275, "y": 80 },
+        "data": {
+          "label": "Key Auth",
+          "type": "plugin",
+          "config": {
+            "name": "key-auth",
+            "enabled": true,
+            "config": {
+              "key_names": ["apikey"],
+              "hide_credentials": false,
+              "key_in_body": false,
+              "key_in_query": true,
+              "key_in_header": true
+            }
+          }
+        }
+      },
+      {
+        "id": "consumer-1",
+        "type": "consumer",
+        "position": { "x": 100, "y": 350 },
+        "data": {
+          "label": "Mobile App",
+          "type": "consumer",
+          "config": {
+            "username": "mobile-app",
+            "custom_id": "mobile-app-v1"
+          }
+        }
+      },
+      {
+        "id": "consumer-2",
+        "type": "consumer",
+        "position": { "x": 250, "y": 350 },
+        "data": {
+          "label": "Web App",
+          "type": "consumer",
+          "config": {
+            "username": "web-app",
+            "custom_id": "web-app-v1"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "route-1-service-1",
+        "source": "route-1",
+        "target": "service-1",
+        "type": "smoothstep"
+      },
+      {
+        "id": "plugin-1-route-1",
+        "source": "plugin-1",
+        "target": "route-1",
+        "type": "smoothstep"
+      }
+    ]
+  },
+
+  "explanation": {
+    "overview": "Authentication is critical for most APIs. The key-auth plugin is Kong's simplest authentication method - clients must provide an API key with each request. This demo shows how to set up authentication and manage multiple API consumers (clients).",
+
+    "steps": [
+      {
+        "title": "Create the Route and Service",
+        "description": "Same as before - a route forwards to a service. But this time, we're protecting it with authentication.",
+        "nodeId": "route-1"
+      },
+      {
+        "title": "Add Key Authentication Plugin",
+        "description": "The key-auth plugin checks every request for a valid API key. If the key is missing or invalid, Kong rejects the request with 401 Unauthorized. The plugin looks for the key in headers (X-API-Key or apikey) or query parameters (?apikey=xxx).",
+        "nodeId": "plugin-1",
+        "tip": "Set hide_credentials to true in production to prevent API keys from being logged or forwarded to your backend."
+      },
+      {
+        "title": "Connect Plugin to Route",
+        "description": "By attaching the plugin to the route, we require authentication only for this specific endpoint. Other routes remain public unless they have their own auth plugins.",
+        "edgeId": "plugin-1-route-1"
+      },
+      {
+        "title": "Create Consumers",
+        "description": "Consumers represent your API clients - mobile apps, web apps, partner systems, etc. Each consumer can have their own credentials (API keys, JWT tokens, etc.). In this example, we have two consumers: mobile-app and web-app.",
+        "nodeId": "consumer-1",
+        "tip": "Use meaningful usernames that identify the client application, not individual users."
+      },
+      {
+        "title": "Issue API Keys (After Deployment)",
+        "description": "After deploying, you'll need to create API keys for each consumer using Kong's Admin API. These keys are then distributed to your client applications securely.",
+        "tip": "Never commit API keys to version control. Use environment variables or secret management systems."
+      }
+    ],
+
+    "keyTakeaways": [
+      "Consumers represent API clients (apps, services, partners)",
+      "Authentication plugins (key-auth, JWT, OAuth2) identify consumers",
+      "One consumer can have multiple credentials (e.g., multiple API keys)",
+      "API keys should be kept secret and rotated periodically",
+      "You can apply different rate limits or access controls per consumer"
+    ]
+  },
+
+  "testInstructions": "After deploying:\n\n1. Create an API key for the mobile-app consumer:\n   curl -X POST http://localhost:8001/consumers/mobile-app/key-auth\n   \n   Response: {\"key\": \"abc123xyz...\"}\n\n2. Test without API key (should fail):\n   curl http://localhost:8000/secure/get\n   \n   Response: 401 Unauthorized\n\n3. Test with API key (should succeed):\n   curl -H \"apikey: abc123xyz...\" http://localhost:8000/secure/get\n   \n   Response: 200 OK\n\n4. Create a key for web-app consumer and test:\n   curl -X POST http://localhost:8001/consumers/web-app/key-auth\n   curl -H \"apikey: def456uvw...\" http://localhost:8000/secure/get",
+
+  "expectedOutput": "Without key:\nHTTP/1.1 401 Unauthorized\n{\"message\":\"No API key found in request\"}\n\nWith valid key:\nHTTP/1.1 200 OK\nX-Consumer-Username: mobile-app\n{...response from backend...}",
+
+  "commonMistakes": [
+    {
+      "mistake": "Forgetting to create API keys after deployment",
+      "fix": "Use Kong Admin API to generate keys: POST /consumers/{username}/key-auth",
+      "explanation": "Creating a consumer doesn't automatically create credentials. You must explicitly create them."
+    },
+    {
+      "mistake": "Sharing one API key across multiple clients",
+      "fix": "Create separate consumers for each client application",
+      "explanation": "One key per client allows you to revoke access individually and track usage per application."
+    },
+    {
+      "mistake": "Putting API keys in URLs (query parameters)",
+      "fix": "Use headers for API keys in production",
+      "explanation": "URLs are often logged, cached, and visible in browser history. Headers are more secure."
+    },
+    {
+      "mistake": "Never rotating API keys",
+      "fix": "Implement a key rotation policy (e.g., rotate every 90 days)",
+      "explanation": "Long-lived credentials increase the risk if they're compromised. Regular rotation limits exposure."
+    }
+  ],
+
+  "relatedDemos": [
+    "api-with-rate-limiting",
+    "multi-tier-rate-limiting",
+    "jwt-authentication"
+  ]
+}

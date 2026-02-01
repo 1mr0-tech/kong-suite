@@ -42,21 +42,18 @@ export function RouteForm({ data, onSave }: RouteFormProps) {
     name: 'paths',
   });
 
-  // Auto-save on blur
-  const handleBlur = () => {
-    if (isDirty) {
-      handleSubmit(onSave)();
-    }
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault(); // Prevent form submission on Enter
     }
   };
 
+  const onSubmit = (formData: RouteFormData) => {
+    onSave(formData);
+  };
+
   return (
-    <form className="space-y-4" onKeyDown={handleKeyDown}>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" onKeyDown={handleKeyDown}>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Route Name <span className="text-red-500">*</span>
@@ -64,7 +61,6 @@ export function RouteForm({ data, onSave }: RouteFormProps) {
         <input
           type="text"
           {...register('name')}
-          onBlur={handleBlur}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
           placeholder="my-route"
         />
@@ -83,10 +79,6 @@ export function RouteForm({ data, onSave }: RouteFormProps) {
               type="checkbox"
               {...register('protocols')}
               value="http"
-              onChange={(e) => {
-                register('protocols').onChange(e);
-                handleBlur();
-              }}
               className="mr-2"
             />
             HTTP
@@ -96,10 +88,6 @@ export function RouteForm({ data, onSave }: RouteFormProps) {
               type="checkbox"
               {...register('protocols')}
               value="https"
-              onChange={(e) => {
-                register('protocols').onChange(e);
-                handleBlur();
-              }}
               className="mr-2"
             />
             HTTPS
@@ -109,10 +97,6 @@ export function RouteForm({ data, onSave }: RouteFormProps) {
               type="checkbox"
               {...register('protocols')}
               value="grpc"
-              onChange={(e) => {
-                register('protocols').onChange(e);
-                handleBlur();
-              }}
               className="mr-2"
             />
             gRPC
@@ -122,10 +106,6 @@ export function RouteForm({ data, onSave }: RouteFormProps) {
               type="checkbox"
               {...register('protocols')}
               value="grpcs"
-              onChange={(e) => {
-                register('protocols').onChange(e);
-                handleBlur();
-              }}
               className="mr-2"
             />
             gRPCs
@@ -145,17 +125,13 @@ export function RouteForm({ data, onSave }: RouteFormProps) {
             <input
               type="text"
               {...register(`paths.${index}` as const)}
-              onBlur={handleBlur}
               className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
               placeholder="/api/users"
             />
             {pathFields.length > 1 && (
               <button
                 type="button"
-                onClick={() => {
-                  removePath(index);
-                  handleBlur();
-                }}
+                onClick={() => removePath(index)}
                 className="p-2 text-red-600 hover:bg-red-50 rounded"
               >
                 <X size={20} />
@@ -184,10 +160,6 @@ export function RouteForm({ data, onSave }: RouteFormProps) {
                 type="checkbox"
                 {...register('methods')}
                 value={method}
-                onChange={(e) => {
-                  register('methods').onChange(e);
-                  handleBlur();
-                }}
                 className="mr-2"
               />
               {method}
@@ -201,10 +173,6 @@ export function RouteForm({ data, onSave }: RouteFormProps) {
           <input
             type="checkbox"
             {...register('strip_path')}
-            onChange={(e) => {
-              register('strip_path').onChange(e);
-              handleBlur();
-            }}
             className="mr-2"
           />
           Strip Path
@@ -219,10 +187,6 @@ export function RouteForm({ data, onSave }: RouteFormProps) {
           <input
             type="checkbox"
             {...register('preserve_host')}
-            onChange={(e) => {
-              register('preserve_host').onChange(e);
-              handleBlur();
-            }}
             className="mr-2"
           />
           Preserve Host
@@ -232,8 +196,14 @@ export function RouteForm({ data, onSave }: RouteFormProps) {
         </p>
       </div>
 
-      <div className="text-sm text-gray-500 italic">
-        Changes are saved when you click outside the field
+      <div className="pt-4 border-t border-gray-200">
+        <button
+          type="submit"
+          disabled={!isDirty}
+          className="w-full px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
+        >
+          {isDirty ? 'Save Changes' : 'No Changes'}
+        </button>
       </div>
     </form>
   );

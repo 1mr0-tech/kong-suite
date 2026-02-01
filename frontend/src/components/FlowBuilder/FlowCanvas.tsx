@@ -1,16 +1,22 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useMemo } from 'react';
 import ReactFlow, {
   Background,
   Controls,
   MiniMap,
   Panel,
   useReactFlow,
+  type EdgeTypes,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import type { FlowNodeType } from '@kong-suite/shared';
 
 import { useFlowStore } from '@/stores/flowStore';
 import { nodeTypes } from './nodes';
+import { DeletableEdge } from './DeletableEdge';
+
+const edgeTypes: EdgeTypes = {
+  smoothstep: DeletableEdge,
+};
 
 export function FlowCanvas() {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
@@ -76,6 +82,12 @@ export function FlowCanvas() {
         onDragOver={onDragOver}
         onDrop={onDrop}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        defaultEdgeOptions={{
+          type: 'smoothstep',
+          animated: false,
+          style: { strokeWidth: 2 },
+        }}
         fitView
         className="bg-gray-50"
       >

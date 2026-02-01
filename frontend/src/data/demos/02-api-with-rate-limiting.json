@@ -1,0 +1,146 @@
+{
+  "id": "api-with-rate-limiting",
+  "name": "API with Rate Limiting",
+  "description": "Protect your API from abuse by limiting the number of requests per client.",
+  "difficulty": "beginner",
+  "category": "security",
+  "tags": ["rate-limiting", "security", "ddos-protection"],
+
+  "learningObjectives": [
+    "Understand why rate limiting is critical for API security",
+    "Configure a rate-limiting plugin",
+    "Learn about different rate limiting policies",
+    "Test rate limit behavior"
+  ],
+
+  "flow": {
+    "nodes": [
+      {
+        "id": "service-1",
+        "type": "service",
+        "position": { "x": 400, "y": 200 },
+        "data": {
+          "label": "API Service",
+          "type": "service",
+          "config": {
+            "name": "api-service",
+            "protocol": "https",
+            "host": "httpbin.org",
+            "port": 443,
+            "retries": 5
+          }
+        }
+      },
+      {
+        "id": "route-1",
+        "type": "route",
+        "position": { "x": 100, "y": 200 },
+        "data": {
+          "label": "Public API Route",
+          "type": "route",
+          "config": {
+            "name": "api-route",
+            "protocols": ["http", "https"],
+            "methods": ["GET", "POST"],
+            "paths": ["/api"],
+            "strip_path": false
+          }
+        }
+      },
+      {
+        "id": "plugin-1",
+        "type": "plugin",
+        "position": { "x": 250, "y": 80 },
+        "data": {
+          "label": "Rate Limiting",
+          "type": "plugin",
+          "config": {
+            "name": "rate-limiting",
+            "enabled": true,
+            "config": {
+              "minute": 10,
+              "hour": 100,
+              "policy": "local",
+              "fault_tolerant": true,
+              "hide_client_headers": false
+            }
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "route-1-service-1",
+        "source": "route-1",
+        "target": "service-1",
+        "type": "smoothstep"
+      },
+      {
+        "id": "plugin-1-route-1",
+        "source": "plugin-1",
+        "target": "route-1",
+        "type": "smoothstep"
+      }
+    ]
+  },
+
+  "explanation": {
+    "overview": "Rate limiting is one of the most important security measures for any API. It prevents abuse by limiting how many requests a client can make in a given time period. Without rate limiting, a single bad actor could overwhelm your API with requests (DDoS attack), affecting all legitimate users.",
+
+    "steps": [
+      {
+        "title": "Set up the basic Route → Service",
+        "description": "Just like before, we have a route that forwards to a service. This is the foundation.",
+        "nodeId": "route-1"
+      },
+      {
+        "title": "Add a Rate Limiting Plugin",
+        "description": "The rate-limiting plugin counts requests and enforces limits. In this config, we're allowing 10 requests per minute and 100 per hour. If a client exceeds this, they get a 429 (Too Many Requests) error.",
+        "nodeId": "plugin-1",
+        "tip": "Start with conservative limits (low numbers) in production. You can always increase them based on monitoring."
+      },
+      {
+        "title": "Connect Plugin to Route",
+        "description": "By connecting the plugin to the route, we apply rate limiting only to this specific route. This is called 'route-scoped' application. You could also connect it to the service (affects all routes of that service) or leave it unconnected (global, affects all requests).",
+        "edgeId": "plugin-1-route-1",
+        "tip": "Plugins attached to routes are more specific than service-level plugins. More specific = higher priority."
+      }
+    ],
+
+    "keyTakeaways": [
+      "Rate limiting protects your API from abuse and ensures fair usage",
+      "The 'local' policy stores counters in-memory (fast but doesn't work in clusters)",
+      "For production clusters, use 'redis' policy for shared rate limiting",
+      "429 status code means 'Too Many Requests' - this is standard HTTP",
+      "Plugins can be scoped to routes, services, consumers, or applied globally"
+    ]
+  },
+
+  "testInstructions": "After deploying:\n\n1. Send requests and watch the rate limit headers:\n   curl -i http://localhost:8000/api/get\n\n2. Look for these response headers:\n   X-RateLimit-Limit-Minute: 10\n   X-RateLimit-Remaining-Minute: 9\n\n3. Send 11 requests quickly to trigger the limit:\n   for i in {1..11}; do curl http://localhost:8000/api/get; done\n\n4. The 11th request should return:\n   HTTP/1.1 429 Too Many Requests\n   {\"message\":\"API rate limit exceeded\"}",
+
+  "expectedOutput": "First request:\nHTTP/1.1 200 OK\nX-RateLimit-Limit-Minute: 10\nX-RateLimit-Remaining-Minute: 9\n\n11th request:\nHTTP/1.1 429 Too Many Requests\n{\"message\":\"API rate limit exceeded\"}",
+
+  "commonMistakes": [
+    {
+      "mistake": "Using 'local' policy in a multi-node cluster",
+      "fix": "Use 'redis' policy for clustered Kong deployments",
+      "explanation": "The 'local' policy stores counters in each Kong node's memory. In a cluster, each node counts independently, making limits ineffective."
+    },
+    {
+      "mistake": "Setting limits too high",
+      "fix": "Start conservative (e.g., 100/min) and increase based on monitoring",
+      "explanation": "It's easier to relax limits than to suddenly restrict users who are used to higher limits."
+    },
+    {
+      "mistake": "Not monitoring rate limit hits",
+      "fix": "Add logging plugins to track who's hitting rate limits and why",
+      "explanation": "Knowing which clients hit limits helps you identify abuse vs. legitimate high-volume users who need higher limits."
+    }
+  ],
+
+  "relatedDemos": [
+    "simple-api-gateway",
+    "multi-tier-rate-limiting",
+    "secured-api-key-auth"
+  ]
+}

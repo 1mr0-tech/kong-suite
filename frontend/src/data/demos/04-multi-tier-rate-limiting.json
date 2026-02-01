@@ -1,0 +1,248 @@
+{
+  "id": "multi-tier-rate-limiting",
+  "name": "Multi-Tier Rate Limiting",
+  "description": "Different rate limits for different user tiers. Learn plugin precedence and consumer-specific policies.",
+  "difficulty": "advanced",
+  "category": "traffic-management",
+  "tags": ["rate-limiting", "consumer", "precedence", "tiered-access"],
+
+  "learningObjectives": [
+    "Understand Kong's plugin precedence system",
+    "Configure tier-based access control",
+    "Apply different policies to different consumers",
+    "Implement freemium API business models"
+  ],
+
+  "flow": {
+    "nodes": [
+      {
+        "id": "service-1",
+        "type": "service",
+        "position": { "x": 550, "y": 250 },
+        "data": {
+          "label": "API Service",
+          "type": "service",
+          "config": {
+            "name": "tiered-api",
+            "protocol": "https",
+            "host": "httpbin.org",
+            "port": 443
+          }
+        }
+      },
+      {
+        "id": "route-1",
+        "type": "route",
+        "position": { "x": 100, "y": 250 },
+        "data": {
+          "label": "API Route",
+          "type": "route",
+          "config": {
+            "name": "api-route",
+            "protocols": ["http", "https"],
+            "methods": ["GET", "POST"],
+            "paths": ["/api"],
+            "strip_path": false
+          }
+        }
+      },
+      {
+        "id": "plugin-auth",
+        "type": "plugin",
+        "position": { "x": 300, "y": 80 },
+        "data": {
+          "label": "Key Auth",
+          "type": "plugin",
+          "config": {
+            "name": "key-auth",
+            "enabled": true,
+            "config": {
+              "key_names": ["apikey"]
+            }
+          }
+        }
+      },
+      {
+        "id": "plugin-global-limit",
+        "type": "plugin",
+        "position": { "x": 100, "y": 400 },
+        "data": {
+          "label": "Global Limit",
+          "type": "plugin",
+          "config": {
+            "name": "rate-limiting",
+            "enabled": true,
+            "config": {
+              "minute": 100,
+              "hour": 1000,
+              "policy": "local"
+            }
+          }
+        }
+      },
+      {
+        "id": "plugin-free-limit",
+        "type": "plugin",
+        "position": { "x": 250, "y": 400 },
+        "data": {
+          "label": "Free Tier Limit",
+          "type": "plugin",
+          "config": {
+            "name": "rate-limiting",
+            "enabled": true,
+            "config": {
+              "minute": 10,
+              "hour": 100,
+              "policy": "local"
+            }
+          }
+        }
+      },
+      {
+        "id": "plugin-premium-limit",
+        "type": "plugin",
+        "position": { "x": 400, "y": 400 },
+        "data": {
+          "label": "Premium Tier Limit",
+          "type": "plugin",
+          "config": {
+            "name": "rate-limiting",
+            "enabled": true,
+            "config": {
+              "minute": 1000,
+              "hour": 10000,
+              "policy": "local"
+            }
+          }
+        }
+      },
+      {
+        "id": "consumer-free",
+        "type": "consumer",
+        "position": { "x": 200, "y": 550 },
+        "data": {
+          "label": "Free User",
+          "type": "consumer",
+          "config": {
+            "username": "free-tier-user",
+            "custom_id": "free-001"
+          }
+        }
+      },
+      {
+        "id": "consumer-premium",
+        "type": "consumer",
+        "position": { "x": 400, "y": 550 },
+        "data": {
+          "label": "Premium User",
+          "type": "consumer",
+          "config": {
+            "username": "premium-tier-user",
+            "custom_id": "premium-001"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "route-1-service-1",
+        "source": "route-1",
+        "target": "service-1",
+        "type": "smoothstep"
+      },
+      {
+        "id": "plugin-auth-route-1",
+        "source": "plugin-auth",
+        "target": "route-1",
+        "type": "smoothstep"
+      },
+      {
+        "id": "plugin-free-limit-consumer-free",
+        "source": "plugin-free-limit",
+        "target": "consumer-free",
+        "type": "smoothstep"
+      },
+      {
+        "id": "plugin-premium-limit-consumer-premium",
+        "source": "plugin-premium-limit",
+        "target": "consumer-premium",
+        "type": "smoothstep"
+      }
+    ]
+  },
+
+  "explanation": {
+    "overview": "This pattern demonstrates Kong's powerful plugin precedence system. We have multiple rate-limiting plugins - one global (default), one for free users, and one for premium users. Kong automatically applies the MOST SPECIFIC plugin for each request, enabling tiered access control perfect for freemium business models.",
+
+    "steps": [
+      {
+        "title": "Basic Route and Authentication",
+        "description": "We start with a route protected by key authentication. This ensures all requests are from identified consumers.",
+        "nodeId": "route-1",
+        "tip": "Authentication is required for consumer-specific rate limiting to work."
+      },
+      {
+        "title": "Global Rate Limit (Default)",
+        "description": "The global limit (100/min) acts as a default for any consumer that doesn't have a specific limit. This catches unauthenticated requests and any consumers without their own rate limit.",
+        "nodeId": "plugin-global-limit",
+        "tip": "Global plugins are the lowest precedence - they only apply when no more specific plugin exists."
+      },
+      {
+        "title": "Free Tier Limit (Consumer-Specific)",
+        "description": "This rate limit (10/min) is attached to the free-tier consumer. When free-tier-user makes a request, Kong applies THIS limit instead of the global one.",
+        "nodeId": "plugin-free-limit",
+        "edgeId": "plugin-free-limit-consumer-free",
+        "tip": "Consumer-scoped plugins have higher precedence than route or service plugins."
+      },
+      {
+        "title": "Premium Tier Limit (Consumer-Specific)",
+        "description": "Premium users get 1000 requests per minute - 100x more than free users. This is the same rate-limiting plugin, but with different configuration for different consumers.",
+        "nodeId": "plugin-premium-limit",
+        "edgeId": "plugin-premium-limit-consumer-premium",
+        "tip": "You can have unlimited plugin instances of the same type with different scopes."
+      }
+    ],
+
+    "keyTakeaways": [
+      "Kong's precedence system: Consumer > Route > Service > Global",
+      "Multiple instances of the same plugin type are allowed",
+      "More specific plugins always override less specific ones",
+      "This pattern enables freemium business models (free vs. paid tiers)",
+      "Each consumer can have completely different rate limits and policies",
+      "Authentication is required for per-consumer rate limiting to work"
+    ]
+  },
+
+  "testInstructions": "After deploying:\n\n1. Create API keys for both consumers:\n   curl -X POST http://localhost:8001/consumers/free-tier-user/key-auth\n   curl -X POST http://localhost:8001/consumers/premium-tier-user/key-auth\n\n2. Test as free user (10/min limit):\n   for i in {1..15}; do\n     curl -H \"apikey: FREE_KEY\" http://localhost:8000/api/get\n   done\n   \n   Result: Requests 1-10 succeed, requests 11-15 get 429 Too Many Requests\n\n3. Test as premium user (1000/min limit):\n   for i in {1..15}; do\n     curl -H \"apikey: PREMIUM_KEY\" http://localhost:8000/api/get\n   done\n   \n   Result: All 15 requests succeed (well under the 1000/min limit)\n\n4. Test without auth (global 100/min limit applies):\n   curl http://localhost:8000/api/get\n   \n   Result: 401 Unauthorized (auth required)",
+
+  "expectedOutput": "Free user (11th request):\nHTTP/1.1 429 Too Many Requests\nX-RateLimit-Limit-Minute: 10\nX-RateLimit-Remaining-Minute: 0\n\nPremium user (11th request):\nHTTP/1.1 200 OK\nX-RateLimit-Limit-Minute: 1000\nX-RateLimit-Remaining-Minute: 989",
+
+  "commonMistakes": [
+    {
+      "mistake": "Not understanding which plugin applies",
+      "fix": "Remember: Consumer-scoped > Route-scoped > Service-scoped > Global",
+      "explanation": "Kong always uses the most specific plugin. Check X-RateLimit headers to see which limit is active."
+    },
+    {
+      "mistake": "Forgetting to add authentication",
+      "fix": "Consumer-specific limits require auth to identify the consumer",
+      "explanation": "Without auth, Kong can't identify which consumer is making the request, so consumer-scoped plugins won't apply."
+    },
+    {
+      "mistake": "Setting global limit too low",
+      "fix": "Global limit should be generous - it's a safety net, not the main limiter",
+      "explanation": "If global limit is too restrictive, it defeats the purpose of having tiered limits."
+    },
+    {
+      "mistake": "Using different plugin types for tiers",
+      "fix": "Use the same plugin type (rate-limiting) with different configs",
+      "explanation": "All tier limits should use rate-limiting. Don't mix plugin types - it's confusing and unpredictable."
+    }
+  ],
+
+  "relatedDemos": [
+    "secured-api-key-auth",
+    "api-with-rate-limiting",
+    "oauth2-jwt-flow"
+  ]
+}

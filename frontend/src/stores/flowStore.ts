@@ -69,11 +69,11 @@ export const useFlowStore = create<FlowState>((set, get) => ({
     const sourceNode = nodes.find((n) => n.id === connection.source);
     const targetNode = nodes.find((n) => n.id === connection.target);
 
-    // Validate connection
-    const validation = validateConnection(sourceNode, targetNode);
+    // Validate connection - pass edges and nodes for proper validation
+    const validation = validateConnection(sourceNode, targetNode, edges, nodes);
     if (!validation.valid) {
       console.error(validation.error);
-      // TODO: Show error toast
+      alert(validation.error); // Show error to user
       return;
     }
 
@@ -84,6 +84,7 @@ export const useFlowStore = create<FlowState>((set, get) => ({
       target: connection.target,
       type: 'smoothstep',
       animated: false,
+      label: '', // Will be set by edge component if needed
     };
 
     set({

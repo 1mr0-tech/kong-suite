@@ -39,11 +39,49 @@ temp/
 tmp/
 /test-data/
 
+# Claude AI Documentation (session-specific, not for repo)
+.claude/
+.claude-*
+*-session.md
+SESSION-*.md
+MVP-PROGRESS.md
+SECURITY-AUDIT.md
+READY-TO-TEST.md
+TESTING-GUIDE.md
+TOMORROW.md
+
+# Temporary logs and outputs
+/tmp/
+*.log.*
+*-dev.log
+*-debug.log
+
+# Sensitive data (API keys, tokens, secrets)
+*.key
+*.pem
+*.cert
+secrets/
+credentials/
+.secrets
+.credentials
+
+# Local configuration (user-specific)
+.local
+*.local.json
+local-config.json
+
+# Kong-specific temp files
+kong-config-*.yaml
+deck-state/
+
 # Exclude all markdown files except README.md
 *.md
 !README.md
 
-# Claude AI Documentation (session-specific, not for repo)
-.claude/
-.claude-*
+# Exclude shell scripts (local development only)
+*.sh
+
+# Exclude text plan files
+*.txt
+!package.json
 

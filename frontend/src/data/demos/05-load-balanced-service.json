@@ -1,0 +1,178 @@
+{
+  "id": "load-balanced-service",
+  "name": "Load-Balanced Microservice",
+  "description": "Distribute traffic across multiple backend servers using Kong's load balancing features.",
+  "difficulty": "intermediate",
+  "category": "traffic-management",
+  "tags": ["load-balancing", "upstream", "high-availability", "scalability"],
+
+  "learningObjectives": [
+    "Understand the Service → Upstream → Targets pattern",
+    "Configure load balancing algorithms",
+    "Implement health checks for backends",
+    "Build highly available services"
+  ],
+
+  "flow": {
+    "nodes": [
+      {
+        "id": "service-1",
+        "type": "service",
+        "position": { "x": 300, "y": 200 },
+        "data": {
+          "label": "Orders Service",
+          "type": "service",
+          "config": {
+            "name": "orders-service",
+            "protocol": "http",
+            "host": "orders-upstream",
+            "port": 80,
+            "retries": 3,
+            "connect_timeout": 5000,
+            "write_timeout": 5000,
+            "read_timeout": 5000
+          }
+        }
+      },
+      {
+        "id": "route-1",
+        "type": "route",
+        "position": { "x": 100, "y": 200 },
+        "data": {
+          "label": "Orders API",
+          "type": "route",
+          "config": {
+            "name": "orders-route",
+            "protocols": ["http", "https"],
+            "methods": ["GET", "POST", "PUT", "DELETE"],
+            "paths": ["/orders"],
+            "strip_path": false
+          }
+        }
+      },
+      {
+        "id": "upstream-1",
+        "type": "upstream",
+        "position": { "x": 500, "y": 200 },
+        "data": {
+          "label": "Orders Upstream",
+          "type": "upstream",
+          "config": {
+            "name": "orders-upstream",
+            "algorithm": "round-robin",
+            "slots": 10000,
+            "healthchecks": {
+              "active": {
+                "healthy": {
+                  "interval": 5,
+                  "successes": 2
+                },
+                "unhealthy": {
+                  "interval": 5,
+                  "http_failures": 3,
+                  "tcp_failures": 3,
+                  "timeouts": 3
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "route-1-service-1",
+        "source": "route-1",
+        "target": "service-1",
+        "type": "smoothstep"
+      },
+      {
+        "id": "service-1-upstream-1",
+        "source": "service-1",
+        "target": "upstream-1",
+        "type": "smoothstep"
+      }
+    ]
+  },
+
+  "explanation": {
+    "overview": "Load balancing is essential for building scalable, highly available services. Instead of pointing your service to a single backend server (which is a single point of failure), you point it to an Upstream - a logical group of backend servers (Targets). Kong automatically distributes requests across these servers, performs health checks, and removes unhealthy servers from rotation.",
+
+    "steps": [
+      {
+        "title": "Create the Route",
+        "description": "As always, we start with a route that matches incoming requests for /orders. This is your API's public interface.",
+        "nodeId": "route-1"
+      },
+      {
+        "title": "Create the Service",
+        "description": "Notice the service host is 'orders-upstream' - this is the NAME of the upstream, not a real hostname. Kong resolves this to the upstream entity and load balances across its targets.",
+        "nodeId": "service-1",
+        "tip": "When using upstreams, set the service host to the upstream name. Kong handles the resolution."
+      },
+      {
+        "title": "Create the Upstream",
+        "description": "The upstream defines how load balancing works. We're using round-robin (distributes evenly) with active health checks (Kong periodically tests each backend to see if it's healthy). After deploying, you'll add Targets (actual backend servers) to this upstream.",
+        "nodeId": "upstream-1",
+        "tip": "Health checks ensure Kong only sends traffic to healthy backends, automatically handling failures."
+      },
+      {
+        "title": "Connect Service to Upstream",
+        "description": "This connection tells Kong that when forwarding requests for this service, use load balancing across the upstream's targets instead of sending to a single host.",
+        "edgeId": "service-1-upstream-1"
+      },
+      {
+        "title": "Add Targets (After Deployment)",
+        "description": "Targets are the actual backend servers. You'll add them via Kong Admin API:\n- 10.0.1.10:8080 (weight: 100)\n- 10.0.1.11:8080 (weight: 100)\n- 10.0.1.12:8080 (weight: 100)\n\nThese three servers will receive traffic in round-robin fashion.",
+        "tip": "Weights control traffic distribution. Higher weight = more traffic. Equal weights = even distribution."
+      }
+    ],
+
+    "keyTakeaways": [
+      "Upstreams enable load balancing across multiple backend servers",
+      "Service → Upstream → Targets is the pattern for scalable architectures",
+      "Load balancing algorithms: round-robin, least-connections, consistent-hashing, latency",
+      "Active health checks automatically remove unhealthy backends from rotation",
+      "Targets can have different weights to send more traffic to powerful servers",
+      "This eliminates single points of failure and enables horizontal scaling"
+    ]
+  },
+
+  "testInstructions": "After deploying:\n\n1. Add three backend targets to the upstream:\n   curl -X POST http://localhost:8001/upstreams/orders-upstream/targets \\\n     --data \"target=10.0.1.10:8080\" \\\n     --data \"weight=100\"\n   \n   curl -X POST http://localhost:8001/upstreams/orders-upstream/targets \\\n     --data \"target=10.0.1.11:8080\" \\\n     --data \"weight=100\"\n   \n   curl -X POST http://localhost:8001/upstreams/orders-upstream/targets \\\n     --data \"target=10.0.1.12:8080\" \\\n     --data \"weight=100\"\n\n2. Send multiple requests and observe load balancing:\n   for i in {1..9}; do\n     curl http://localhost:8000/orders\n     echo \"Request $i sent\"\n   done\n   \n   Kong distributes these 9 requests evenly: 3 to each backend server\n\n3. Check upstream health:\n   curl http://localhost:8001/upstreams/orders-upstream/health\n   \n   Shows which targets are healthy and receiving traffic\n\n4. Simulate a backend failure:\n   Stop one backend server and watch Kong automatically remove it from rotation",
+
+  "expectedOutput": "Upstream health (all healthy):\n{\n  \"total\": 3,\n  \"data\": [\n    {\"target\": \"10.0.1.10:8080\", \"health\": \"HEALTHY\", \"weight\": 100},\n    {\"target\": \"10.0.1.11:8080\", \"health\": \"HEALTHY\", \"weight\": 100},\n    {\"target\": \"10.0.1.12:8080\", \"health\": \"HEALTHY\", \"weight\": 100}\n  ]\n}\n\nWith one backend down:\n{\n  \"total\": 3,\n  \"data\": [\n    {\"target\": \"10.0.1.10:8080\", \"health\": \"HEALTHY\", \"weight\": 100},\n    {\"target\": \"10.0.1.11:8080\", \"health\": \"UNHEALTHY\", \"weight\": 0},\n    {\"target\": \"10.0.1.12:8080\", \"health\": \"HEALTHY\", \"weight\": 100}\n  ]\n}",
+
+  "commonMistakes": [
+    {
+      "mistake": "Using IP addresses instead of upstream name in service",
+      "fix": "Set service.host to the upstream name, not an IP address",
+      "explanation": "If you use an IP in service.host, Kong sends all traffic there, bypassing the upstream entirely."
+    },
+    {
+      "mistake": "Forgetting to add targets after creating upstream",
+      "fix": "Always add at least one target to the upstream via Admin API",
+      "explanation": "An upstream with no targets will cause all requests to fail with 503 Service Unavailable."
+    },
+    {
+      "mistake": "Using 'local' policy for rate limiting in load-balanced setups",
+      "fix": "When using multiple Kong nodes, use 'redis' policy for consistent rate limiting",
+      "explanation": "Each Kong node tracks limits independently with 'local' policy, making limits inconsistent."
+    },
+    {
+      "mistake": "Not enabling health checks",
+      "fix": "Configure active health checks to auto-detect and remove failed backends",
+      "explanation": "Without health checks, Kong keeps sending traffic to failed backends, causing errors."
+    },
+    {
+      "mistake": "Setting health check intervals too short",
+      "fix": "Use 5-10 second intervals for active checks to avoid overwhelming backends",
+      "explanation": "Health checks every 1 second can add significant load on your backends."
+    }
+  ],
+
+  "relatedDemos": [
+    "simple-api-gateway",
+    "circuit-breaker-pattern",
+    "canary-deployment"
+  ]
+}

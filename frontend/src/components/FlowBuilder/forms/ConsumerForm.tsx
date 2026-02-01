@@ -25,20 +25,18 @@ export function ConsumerForm({ data, onSave }: ConsumerFormProps) {
     defaultValues: data,
   });
 
-  const handleBlur = () => {
-    if (isDirty) {
-      handleSubmit(onSave)();
-    }
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault(); // Prevent form submission on Enter
     }
   };
 
+  const onSubmit = (formData: ConsumerFormData) => {
+    onSave(formData);
+  };
+
   return (
-    <form className="space-y-4" onKeyDown={handleKeyDown}>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" onKeyDown={handleKeyDown}>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Username <span className="text-red-500">*</span>
@@ -46,7 +44,6 @@ export function ConsumerForm({ data, onSave }: ConsumerFormProps) {
         <input
           type="text"
           {...register('username')}
-          onBlur={handleBlur}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
           placeholder="user@example.com"
         />
@@ -62,7 +59,6 @@ export function ConsumerForm({ data, onSave }: ConsumerFormProps) {
         <input
           type="text"
           {...register('custom_id')}
-          onBlur={handleBlur}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
           placeholder="custom-identifier"
         />
@@ -78,8 +74,14 @@ export function ConsumerForm({ data, onSave }: ConsumerFormProps) {
         </p>
       </div>
 
-      <div className="text-sm text-gray-500 italic">
-        Changes are saved when you click outside the field
+      <div className="pt-4 border-t border-gray-200">
+        <button
+          type="submit"
+          disabled={!isDirty}
+          className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
+        >
+          {isDirty ? 'Save Changes' : 'No Changes'}
+        </button>
       </div>
     </form>
   );

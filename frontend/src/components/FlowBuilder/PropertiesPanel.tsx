@@ -8,7 +8,7 @@ import { ConsumerForm } from './forms/ConsumerForm';
 import { UpstreamForm } from './forms/UpstreamForm';
 
 export function PropertiesPanel() {
-  const { selectedNode, updateNode, setSelectedNode } = useFlowStore();
+  const { selectedNode, updateNode, setSelectedNode, edges, nodes } = useFlowStore();
 
   const handleClose = useCallback(() => {
     setSelectedNode(null);
@@ -55,7 +55,13 @@ export function PropertiesPanel() {
           <RouteForm data={nodeConfig} onSave={handleSave} />
         )}
         {nodeType === 'plugin' && (
-          <PluginForm data={nodeConfig} onSave={handleSave} />
+          <PluginForm
+            data={nodeConfig}
+            onSave={handleSave}
+            nodeId={selectedNode.id}
+            edges={edges}
+            nodes={nodes}
+          />
         )}
         {nodeType === 'consumer' && (
           <ConsumerForm data={nodeConfig} onSave={handleSave} />

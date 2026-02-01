@@ -1,0 +1,125 @@
+{
+  "id": "simple-api-gateway",
+  "name": "Simple API Gateway",
+  "description": "Learn the basics: Route → Service. Your first Kong Gateway configuration.",
+  "difficulty": "beginner",
+  "category": "getting-started",
+  "tags": ["basic", "quickstart", "routing"],
+
+  "learningObjectives": [
+    "Understand the Route → Service relationship",
+    "Configure basic HTTP routing rules",
+    "Expose a backend service through Kong",
+    "Test your first API gateway setup"
+  ],
+
+  "flow": {
+    "nodes": [
+      {
+        "id": "service-1",
+        "type": "service",
+        "position": { "x": 400, "y": 200 },
+        "data": {
+          "label": "HTTPBin Service",
+          "type": "service",
+          "config": {
+            "name": "httpbin-service",
+            "protocol": "https",
+            "host": "httpbin.org",
+            "port": 443,
+            "path": "",
+            "retries": 5,
+            "connect_timeout": 60000,
+            "write_timeout": 60000,
+            "read_timeout": 60000
+          }
+        }
+      },
+      {
+        "id": "route-1",
+        "type": "route",
+        "position": { "x": 100, "y": 200 },
+        "data": {
+          "label": "API Route",
+          "type": "route",
+          "config": {
+            "name": "httpbin-route",
+            "protocols": ["http", "https"],
+            "methods": ["GET", "POST"],
+            "hosts": [],
+            "paths": ["/api"],
+            "strip_path": false,
+            "preserve_host": false
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "route-1-service-1",
+        "source": "route-1",
+        "target": "service-1",
+        "type": "smoothstep"
+      }
+    ]
+  },
+
+  "explanation": {
+    "overview": "This is the simplest Kong Gateway pattern. You're creating a gateway that forwards requests from clients to a backend service. Think of it like a smart router for your API.",
+
+    "steps": [
+      {
+        "title": "Create a Service",
+        "description": "A Service in Kong represents your backend API. In this example, we're using HTTPBin (a public testing service at httpbin.org). In production, this would be your actual backend like users-api.internal:8080.",
+        "nodeId": "service-1",
+        "tip": "Always use HTTPS for production services to ensure secure communication between Kong and your backend."
+      },
+      {
+        "title": "Create a Route",
+        "description": "A Route defines how clients access your service. This route matches any request to the path /api. When Kong receives a request to http://kong:8000/api, it knows to forward it to the HTTPBin service.",
+        "nodeId": "route-1",
+        "tip": "Routes can match on paths, methods, hosts, or headers. You can be very specific about what traffic gets routed where."
+      },
+      {
+        "title": "Connect Route to Service",
+        "description": "This connection tells Kong: 'When a request matches this route, forward it to this service.' This is the core of Kong's request routing.",
+        "edgeId": "route-1-service-1",
+        "tip": "Every Route MUST connect to exactly one Service. This is a strict Kong requirement."
+      }
+    ],
+
+    "keyTakeaways": [
+      "Routes define HOW clients access your APIs (matching rules)",
+      "Services define WHERE requests should be forwarded (backend location)",
+      "The Route → Service connection is mandatory and must be 1:1",
+      "Kong acts as a smart proxy, forwarding matched requests to your backend"
+    ]
+  },
+
+  "testInstructions": "After deploying this configuration:\n\n1. Send a test request:\n   curl http://localhost:8000/api/get\n\n2. You should receive a JSON response from HTTPBin showing your request details.\n\n3. Try different methods:\n   curl -X POST http://localhost:8000/api/post\n\nIf you get a response, congratulations! Your first Kong Gateway is working.",
+
+  "expectedOutput": "{\n  \"args\": {},\n  \"headers\": {\n    \"Host\": \"httpbin.org\",\n    \"X-Forwarded-Host\": \"localhost\"\n  },\n  \"origin\": \"your-ip-address\",\n  \"url\": \"https://httpbin.org/get\"\n}",
+
+  "commonMistakes": [
+    {
+      "mistake": "Not setting the service host",
+      "fix": "Always specify a valid backend host (hostname or IP address)",
+      "explanation": "Kong needs to know where to forward requests. Without a host, the service won't work."
+    },
+    {
+      "mistake": "Forgetting to connect Route to Service",
+      "fix": "Drag a connection from the Route node to the Service node",
+      "explanation": "Routes must be connected to services. An unconnected route won't forward any traffic."
+    },
+    {
+      "mistake": "Using wrong path matching",
+      "fix": "Set strip_path to false if you want to preserve the original path",
+      "explanation": "If strip_path is true, Kong removes /api from the path before forwarding. Usually you want to keep it."
+    }
+  ],
+
+  "relatedDemos": [
+    "api-with-rate-limiting",
+    "secured-api-key-auth"
+  ]
+}

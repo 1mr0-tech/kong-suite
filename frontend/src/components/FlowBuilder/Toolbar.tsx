@@ -1,13 +1,14 @@
-import { FileDown, Trash2, Save, FolderOpen, Code2 } from 'lucide-react';
+import { FileDown, Trash2, Save, FolderOpen, Code2, BookOpen } from 'lucide-react';
 import { useFlowStore } from '@/stores/flowStore';
 import { useState } from 'react';
 import axios from 'axios';
 
 interface ToolbarProps {
   onShowCode: () => void;
+  onShowDemos: () => void;
 }
 
-export function Toolbar({ onShowCode }: ToolbarProps) {
+export function Toolbar({ onShowCode, onShowDemos }: ToolbarProps) {
   const { nodes, edges, clearFlow } = useFlowStore();
   const [isExporting, setIsExporting] = useState(false);
 
@@ -99,6 +100,17 @@ export function Toolbar({ onShowCode }: ToolbarProps) {
       >
         <FolderOpen size={16} />
         Load
+      </button>
+
+      <div className="w-px h-6 bg-gray-300" />
+
+      <button
+        onClick={onShowDemos}
+        className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-purple-600 hover:bg-purple-50 rounded transition-colors"
+        title="Browse demo flows"
+      >
+        <BookOpen size={16} />
+        Demo Flows
       </button>
 
       <div className="w-px h-6 bg-gray-300" />
