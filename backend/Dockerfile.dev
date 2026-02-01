@@ -1,0 +1,25 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install decK for Kong configuration management
+RUN apk add --no-cache curl && \
+    curl -sL https://github.com/Kong/deck/releases/download/v1.28.2/deck_1.28.2_linux_amd64.tar.gz | tar xz -C /tmp && \
+    mv /tmp/deck /usr/local/bin/deck && \
+    chmod +x /usr/local/bin/deck && \
+    rm -rf /tmp/*
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy source
+COPY . .
+
+# Expose port
+EXPOSE 3001
+
+# Development command (override in docker-compose)
+CMD ["npm", "run", "dev"]
