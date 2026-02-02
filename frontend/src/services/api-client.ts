@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ApiResponse } from '@kong-suite/shared';
+import type { ApiResponse } from '@/types/api-types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 

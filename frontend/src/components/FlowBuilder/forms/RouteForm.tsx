@@ -37,9 +37,8 @@ export function RouteForm({ data, onSave }: RouteFormProps) {
   });
 
   const { fields: pathFields, append: appendPath, remove: removePath } = useFieldArray({
-    control,
-    // @ts-expect-error - TypeScript has issues inferring array field types with zod
-    name: 'paths',
+    control: control as any,
+    name: 'paths' as any,
   });
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

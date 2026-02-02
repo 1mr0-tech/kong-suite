@@ -1,4 +1,4 @@
-import type { FlowNodeType } from '@kong-suite/shared';
+import type { FlowNodeType } from '@/types/flow-types';
 import type { Edge, Node } from 'reactflow';
 
 // Connection rules based on Kong entity relationships

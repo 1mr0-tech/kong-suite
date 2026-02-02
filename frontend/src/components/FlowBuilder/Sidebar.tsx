@@ -1,5 +1,5 @@
 import { Server, Route, Puzzle, User, Network } from 'lucide-react';
-import type { FlowNodeType } from '@kong-suite/shared';
+import type { FlowNodeType } from '@/types/flow-types';
 
 const NODE_TYPES: Array<{
   type: FlowNodeType;

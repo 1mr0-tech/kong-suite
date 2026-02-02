@@ -8,7 +8,7 @@ import ReactFlow, {
   type EdgeTypes,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import type { FlowNodeType } from '@kong-suite/shared';
+import type { FlowNodeType } from '@/types/flow-types';
 
 import { useFlowStore } from '@/stores/flowStore';
 import { nodeTypes } from './nodes';

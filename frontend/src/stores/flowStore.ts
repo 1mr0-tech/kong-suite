@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { Node, Edge, Connection, NodeChange, EdgeChange } from 'reactflow';
-import { applyNodeChanges as applyChanges, applyEdgeChanges as applyEdges } from 'reactflow';
-import type { FlowNodeType, Flow } from '@kong-suite/shared';
+import { applyNodeChanges, applyEdgeChanges } from 'reactflow';
+import type { FlowNodeType, Flow } from '@/types/flow-types';
 import { NODE_DEFAULTS, PLUGIN_CONFIGS } from '../utils/nodeDefaults';
 import { validateConnection } from '../utils/connectionValidator';
 
@@ -49,14 +49,14 @@ export const useFlowStore = create<FlowState>((set, get) => ({
   // Handle node changes (drag, select, etc.)
   onNodesChange: (changes: NodeChange[]) => {
     set({
-      nodes: applyChanges(changes, get().nodes),
+      nodes: applyNodeChanges(changes, get().nodes),
     });
   },
 
   // Handle edge changes (delete, etc.)
   onEdgesChange: (changes: EdgeChange[]) => {
     set({
-      edges: applyEdges(changes, get().edges),
+      edges: applyEdgeChanges(changes, get().edges),
     });
   },
 

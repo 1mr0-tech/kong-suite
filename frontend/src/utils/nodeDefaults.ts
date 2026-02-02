@@ -1,4 +1,4 @@
-import type { FlowNodeType } from '@kong-suite/shared';
+import type { FlowNodeType } from '@/types/flow-types';
 
 export const NODE_DEFAULTS: Record<FlowNodeType, Record<string, any>> = {
   service: {
