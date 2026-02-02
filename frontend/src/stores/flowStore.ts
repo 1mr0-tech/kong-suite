@@ -72,8 +72,11 @@ export const useFlowStore = create<FlowState>((set, get) => ({
     // Validate connection - pass edges and nodes for proper validation
     const validation = validateConnection(sourceNode, targetNode, edges, nodes);
     if (!validation.valid) {
-      console.error(validation.error);
-      alert(validation.error); // Show error to user
+      // Note: In production, implement proper error notification system
+      // For now, silently reject invalid connections (user sees visual feedback)
+      if (process.env.NODE_ENV === 'development') {
+        alert(validation.error); // Show error to user in development
+      }
       return;
     }
 

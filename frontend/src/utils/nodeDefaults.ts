@@ -232,8 +232,9 @@ export const PLUGIN_CONFIGS: Record<string, Record<string, any>> = {
   // Session
   'session': {
     storage: 'cookie',
-    cookie_secure: false,
-    cookie_httponly: true,
+    cookie_secure: true, // ✅ Secure cookies (HTTPS only)
+    cookie_httponly: true, // ✅ Prevents XSS attacks
+    cookie_samesite: 'Strict', // ✅ CSRF protection
   },
 
   // Misc

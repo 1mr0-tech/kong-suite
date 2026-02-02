@@ -33,7 +33,8 @@ export function CodePreview({ isOpen, onClose }: CodePreviewProps) {
     setYaml('');
 
     try {
-      const response = await axios.post('http://localhost:3001/api/flows/generate', {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+      const response = await axios.post(`${apiUrl}/flows/generate`, {
         nodes,
         edges,
       });
@@ -44,14 +45,18 @@ export function CodePreview({ isOpen, onClose }: CodePreviewProps) {
         setError('Failed to generate YAML: ' + (response.data.error || 'Unknown error'));
       }
     } catch (err: any) {
-      console.error('Generation error:', err);
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error('Generation error:', err);
+      }
 
       if (err.response?.data?.errors) {
         setError('Validation errors:\n' + err.response.data.errors.join('\n'));
       } else if (err.response?.data?.error) {
         setError(err.response.data.error);
       } else if (err.message) {
-        setError('Error: ' + err.message + '\n\nMake sure the backend is running on http://localhost:3001');
+        const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+        setError('Error: ' + err.message + '\n\nMake sure the backend is running on ' + backendUrl.replace('/api', ''));
       } else {
         setError('Failed to generate YAML. Please check your flow configuration and backend connection.');
       }
@@ -66,7 +71,12 @@ export function CodePreview({ isOpen, onClose }: CodePreviewProps) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy:', err);
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error('Failed to copy:', err);
+      }
+      // Optionally show user-friendly error message
+      alert('Failed to copy to clipboard. Please try again.');
     }
   };
 
@@ -194,7 +204,7 @@ export function CodePreview({ isOpen, onClose }: CodePreviewProps) {
                 See what will change before applying:
               </p>
               <code className="block px-2 py-1.5 bg-gray-100 rounded text-xs">
-                deck gateway diff kong-config.yaml --kong-addr http://localhost:8001
+                deck gateway diff kong-config.yaml --kong-addr {import.meta.env.VITE_KONG_ADMIN_URL || 'http://localhost:8001'}
               </code>
             </div>
 
@@ -204,10 +214,10 @@ export function CodePreview({ isOpen, onClose }: CodePreviewProps) {
                 Apply your configuration to Kong:
               </p>
               <code className="block px-2 py-1.5 bg-green-50 rounded text-xs">
-                deck gateway sync kong-config.yaml --kong-addr http://localhost:8001
+                deck gateway sync kong-config.yaml --kong-addr {import.meta.env.VITE_KONG_ADMIN_URL || 'http://localhost:8001'}
               </code>
               <p className="text-xs text-gray-500 mt-2">
-                Replace <code className="px-1 py-0.5 bg-gray-100 rounded">http://localhost:8001</code> with your Kong Admin API URL
+                Replace the <code className="px-1 py-0.5 bg-gray-100 rounded">--kong-addr</code> value with your Kong Admin API URL
               </p>
             </div>
 

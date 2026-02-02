@@ -29,7 +29,8 @@ export function Toolbar({ onShowCode, onShowDemos }: ToolbarProps) {
     setIsExporting(true);
 
     try {
-      const response = await axios.post('http://localhost:3001/api/flows/generate', {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+      const response = await axios.post(`${apiUrl}/flows/generate`, {
         nodes,
         edges,
       });
@@ -54,7 +55,10 @@ export function Toolbar({ onShowCode, onShowDemos }: ToolbarProps) {
       } else {
         alert('Failed to generate YAML. Please check your flow configuration.');
       }
-      console.error('Export error:', error);
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error('Export error:', error);
+      }
     } finally {
       setIsExporting(false);
     }

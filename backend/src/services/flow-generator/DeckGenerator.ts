@@ -1,6 +1,58 @@
 import yaml from 'js-yaml';
 import type { Node, Edge } from 'reactflow';
 
+/**
+ * Sanitize string values to prevent YAML injection
+ * Removes dangerous characters and patterns that could break YAML structure
+ */
+function sanitizeYamlValue(value: any): any {
+  if (typeof value === 'string') {
+    // Remove or escape dangerous YAML characters
+    return value
+      .replace(/[\x00-\x1F\x7F]/g, '') // Remove control characters
+      .replace(/[`${}]/g, '') // Remove template literal syntax
+      .replace(/^\s*[-!&*>|]/g, '') // Remove YAML special characters at start
+      .trim();
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(sanitizeYamlValue);
+  }
+
+  if (value && typeof value === 'object') {
+    const sanitized: any = {};
+    for (const [key, val] of Object.entries(value)) {
+      // Sanitize keys and values
+      const safeKey = sanitizeYamlValue(key);
+      sanitized[safeKey] = sanitizeYamlValue(val);
+    }
+    return sanitized;
+  }
+
+  return value;
+}
+
+/**
+ * Validate that a string is a safe identifier (for names, etc.)
+ */
+function validateIdentifier(value: string, fieldName: string): string {
+  if (!value || typeof value !== 'string') {
+    throw new Error(`${fieldName} must be a non-empty string`);
+  }
+
+  // Allow alphanumeric, hyphens, underscores, dots
+  const safePattern = /^[a-zA-Z0-9._-]+$/;
+  if (!safePattern.test(value)) {
+    throw new Error(`${fieldName} contains invalid characters. Only alphanumeric, hyphens, underscores, and dots allowed.`);
+  }
+
+  if (value.length > 255) {
+    throw new Error(`${fieldName} is too long (max 255 characters)`);
+  }
+
+  return value;
+}
+
 interface DeckConfig {
   _format_version: string;
   services?: any[];
@@ -58,16 +110,26 @@ export class DeckGenerator {
     if (consumers.length > 0) config.consumers = consumers;
     if (upstreams.length > 0) config.upstreams = upstreams;
 
-    return yaml.dump(config, {
+    // Sanitize all values before YAML generation to prevent injection
+    const sanitizedConfig = sanitizeYamlValue(config);
+
+    return yaml.dump(sanitizedConfig, {
       indent: 2,
       lineWidth: -1,
       noRefs: true,
+      // Additional security options
+      skipInvalid: true,
+      flowLevel: -1,
     });
   }
 
   private generateService(node: Node, data: any): any {
+    // Validate and sanitize service name
+    const serviceName = data.name || node.id;
+    validateIdentifier(serviceName, 'Service name');
+
     const service: any = {
-      name: data.name || node.id,
+      name: serviceName,
       protocol: data.protocol || 'http',
       host: data.host || 'example.com',
       port: data.port || 80,
@@ -84,8 +146,12 @@ export class DeckGenerator {
   }
 
   private generateRoute(node: Node, data: any, edges: Edge[]): any {
+    // Validate and sanitize route name
+    const routeName = data.name || node.id;
+    validateIdentifier(routeName, 'Route name');
+
     const route: any = {
-      name: data.name || node.id,
+      name: routeName,
     };
 
     // Find connected service
