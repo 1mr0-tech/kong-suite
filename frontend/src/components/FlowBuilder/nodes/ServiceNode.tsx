@@ -10,21 +10,77 @@ function ServiceNode({ data, selected }: NodeProps) {
         selected ? 'border-blue-500' : 'border-blue-300'
       }`}
     >
-      {/* Top handles - both source and target for maximum flexibility */}
-      <Handle type="target" position={Position.Top} id="top-target" className="w-3 h-3 !bg-blue-500" />
-      <Handle type="source" position={Position.Top} id="top-source" className="w-3 h-3 !bg-blue-500" />
+      {/* Top handles */}
+      <Handle
+        type="target"
+        position={Position.Top}
+        id="top-target"
+        className="w-3 h-3 !bg-blue-500"
+        style={{ left: '45%' }}
+        isConnectable={true}
+      />
+      <Handle
+        type="source"
+        position={Position.Top}
+        id="top-source"
+        className="w-3 h-3 !bg-blue-500"
+        style={{ left: '55%' }}
+        isConnectable={true}
+      />
 
       {/* Left handles */}
-      <Handle type="target" position={Position.Left} id="left-target" className="w-3 h-3 !bg-blue-500" />
-      <Handle type="source" position={Position.Left} id="left-source" className="w-3 h-3 !bg-blue-500" />
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="left-target"
+        className="w-3 h-3 !bg-blue-500"
+        style={{ top: '45%' }}
+        isConnectable={true}
+      />
+      <Handle
+        type="source"
+        position={Position.Left}
+        id="left-source"
+        className="w-3 h-3 !bg-blue-500"
+        style={{ top: '55%' }}
+        isConnectable={true}
+      />
 
       {/* Right handles */}
-      <Handle type="target" position={Position.Right} id="right-target" className="w-3 h-3 !bg-blue-500" />
-      <Handle type="source" position={Position.Right} id="right-source" className="w-3 h-3 !bg-blue-500" />
+      <Handle
+        type="target"
+        position={Position.Right}
+        id="right-target"
+        className="w-3 h-3 !bg-blue-500"
+        style={{ top: '45%' }}
+        isConnectable={true}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="right-source"
+        className="w-3 h-3 !bg-blue-500"
+        style={{ top: '55%' }}
+        isConnectable={true}
+      />
 
       {/* Bottom handles */}
-      <Handle type="target" position={Position.Bottom} id="bottom-target" className="w-3 h-3 !bg-blue-500" />
-      <Handle type="source" position={Position.Bottom} id="bottom-source" className="w-3 h-3 !bg-blue-500" />
+      <Handle
+        type="target"
+        position={Position.Bottom}
+        id="bottom-target"
+        className="w-3 h-3 !bg-blue-500"
+        style={{ left: '45%' }}
+        isConnectable={true}
+      />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="bottom-source"
+        className="w-3 h-3 !bg-blue-500"
+        style={{ left: '55%' }}
+        isConnectable={true}
+      />
 
       <div className="flex items-center gap-2 mb-2">
         <div className="p-1.5 bg-blue-100 rounded">
