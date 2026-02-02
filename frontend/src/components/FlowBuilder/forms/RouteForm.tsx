@@ -1,15 +1,14 @@
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useEffect } from 'react';
 import { Plus, X } from 'lucide-react';
 
 const routeSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   protocols: z.array(z.string()).min(1, 'At least one protocol is required'),
-  methods: z.array(z.string()).optional(),
-  paths: z.array(z.string()).optional(),
-  hosts: z.array(z.string()).optional(),
+  methods: z.array(z.string()),
+  paths: z.array(z.string()),
+  hosts: z.array(z.string()),
   strip_path: z.boolean(),
   preserve_host: z.boolean(),
 });
@@ -39,6 +38,7 @@ export function RouteForm({ data, onSave }: RouteFormProps) {
 
   const { fields: pathFields, append: appendPath, remove: removePath } = useFieldArray({
     control,
+    // @ts-expect-error - TypeScript has issues inferring array field types with zod
     name: 'paths',
   });
 
@@ -141,7 +141,7 @@ export function RouteForm({ data, onSave }: RouteFormProps) {
         ))}
         <button
           type="button"
-          onClick={() => appendPath('')}
+          onClick={() => appendPath('' as any)}
           className="flex items-center gap-1 text-sm text-orange-600 hover:text-orange-700"
         >
           <Plus size={16} />

@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { AVAILABLE_PLUGINS, PLUGIN_CONFIGS } from '@/utils/nodeDefaults';
 import { Globe, Server, Route as RouteIcon, User, Info } from 'lucide-react';
 

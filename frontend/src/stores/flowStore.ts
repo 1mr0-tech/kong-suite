@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Node, Edge, Connection, NodeChange, EdgeChange, applyNodeChanges, applyEdgeChanges } from 'reactflow';
+import type { Node, Edge, Connection, NodeChange, EdgeChange } from 'reactflow';
 import { applyNodeChanges as applyChanges, applyEdgeChanges as applyEdges } from 'reactflow';
 import type { FlowNodeType, Flow } from '@kong-suite/shared';
 import { NODE_DEFAULTS, PLUGIN_CONFIGS } from '../utils/nodeDefaults';
