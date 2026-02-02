@@ -12,7 +12,11 @@ function ConsumerNode({ data, selected }: NodeProps) {
         selected ? 'border-green-500' : 'border-green-300'
       }`}
     >
-      <Handle type="target" position={Position.Top} className="w-3 h-3" />
+      {/* Target handles - for incoming connections from Plugins */}
+      <Handle type="target" position={Position.Top} id="top" className="w-3 h-3" />
+      <Handle type="target" position={Position.Left} id="left" className="w-3 h-3" />
+      <Handle type="target" position={Position.Right} id="right" className="w-3 h-3" />
+      <Handle type="target" position={Position.Bottom} id="bottom" className="w-3 h-3" />
 
       <div className="flex items-center gap-2 mb-2">
         <div className="p-1.5 bg-green-100 rounded">

@@ -12,7 +12,10 @@ function UpstreamNode({ data, selected }: NodeProps) {
         selected ? 'border-teal-500' : 'border-teal-300'
       }`}
     >
-      <Handle type="target" position={Position.Top} className="w-3 h-3" />
+      {/* Target handles - for incoming connections from Services */}
+      <Handle type="target" position={Position.Top} id="top" className="w-3 h-3" />
+      <Handle type="target" position={Position.Left} id="left" className="w-3 h-3" />
+      <Handle type="target" position={Position.Right} id="right" className="w-3 h-3" />
 
       <div className="flex items-center gap-2 mb-2">
         <div className="p-1.5 bg-teal-100 rounded">
@@ -29,7 +32,8 @@ function UpstreamNode({ data, selected }: NodeProps) {
         {algorithm.replace(/-/g, ' ')}
       </div>
 
-      <Handle type="source" position={Position.Bottom} className="w-3 h-3" />
+      {/* Source handle - for outgoing connections to Targets */}
+      <Handle type="source" position={Position.Bottom} id="bottom" className="w-3 h-3" />
     </div>
   );
 }

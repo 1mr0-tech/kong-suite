@@ -13,7 +13,8 @@ function PluginNode({ data, selected }: NodeProps) {
         selected ? 'border-purple-500' : 'border-purple-300'
       } ${!enabled ? 'opacity-60' : ''}`}
     >
-      <Handle type="target" position={Position.Top} className="w-3 h-3" />
+      {/* Target handle - plugins don't receive incoming connections */}
+      <Handle type="target" position={Position.Top} id="top" className="w-3 h-3" style={{ visibility: 'hidden' }} />
 
       <div className="flex items-center gap-2 mb-2">
         <div className="p-1.5 bg-purple-100 rounded">
@@ -32,7 +33,10 @@ function PluginNode({ data, selected }: NodeProps) {
         </span>
       </div>
 
-      <Handle type="source" position={Position.Bottom} className="w-3 h-3" />
+      {/* Source handles - for outgoing connections to Services, Routes, Consumers */}
+      <Handle type="source" position={Position.Bottom} id="bottom" className="w-3 h-3" />
+      <Handle type="source" position={Position.Left} id="left" className="w-3 h-3" />
+      <Handle type="source" position={Position.Right} id="right" className="w-3 h-3" />
     </div>
   );
 }

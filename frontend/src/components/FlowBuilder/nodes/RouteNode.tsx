@@ -12,7 +12,8 @@ function RouteNode({ data, selected }: NodeProps) {
         selected ? 'border-orange-500' : 'border-orange-300'
       }`}
     >
-      <Handle type="target" position={Position.Top} className="w-3 h-3" />
+      {/* Target handle - for incoming connections from Plugins */}
+      <Handle type="target" position={Position.Top} id="top" className="w-3 h-3" />
 
       <div className="flex items-center gap-2 mb-2">
         <div className="p-1.5 bg-orange-100 rounded">
@@ -31,7 +32,10 @@ function RouteNode({ data, selected }: NodeProps) {
         </div>
       )}
 
-      <Handle type="source" position={Position.Bottom} className="w-3 h-3" />
+      {/* Source handles - for outgoing connections to Services */}
+      <Handle type="source" position={Position.Bottom} id="bottom" className="w-3 h-3" />
+      <Handle type="source" position={Position.Left} id="left" className="w-3 h-3" />
+      <Handle type="source" position={Position.Right} id="right" className="w-3 h-3" />
     </div>
   );
 }
