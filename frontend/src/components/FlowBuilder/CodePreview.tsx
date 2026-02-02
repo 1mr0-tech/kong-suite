@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Copy, Download, Check, RefreshCw } from 'lucide-react';
 import { useFlowStore } from '@/stores/flowStore';
-import axios from 'axios';
+import { yamlGenerator } from '@/services/yamlGenerator';
 
 interface CodePreviewProps {
   isOpen: boolean;
@@ -33,33 +33,26 @@ export function CodePreview({ isOpen, onClose }: CodePreviewProps) {
     setYaml('');
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-      const response = await axios.post(`${apiUrl}/flows/generate`, {
-        nodes,
-        edges,
-      });
-
-      if (response.data.success) {
-        setYaml(response.data.data.output.content);
-      } else {
-        setError('Failed to generate YAML: ' + (response.data.error || 'Unknown error'));
+      // Validate flow before generation
+      const validationErrors = yamlGenerator.validateFlow(nodes, edges);
+      if (validationErrors.length > 0) {
+        setError('Validation errors:\n' + validationErrors.join('\n'));
+        setYaml('# Fix the validation errors above to generate configuration');
+        return;
       }
+
+      // Generate YAML client-side (no backend needed!)
+      const generatedYaml = yamlGenerator.generateYAML(nodes, edges);
+      setYaml(generatedYaml);
+      setError(null);
     } catch (err: any) {
       // Only log in development
       if (import.meta.env.DEV) {
         console.error('Generation error:', err);
       }
 
-      if (err.response?.data?.errors) {
-        setError('Validation errors:\n' + err.response.data.errors.join('\n'));
-      } else if (err.response?.data?.error) {
-        setError(err.response.data.error);
-      } else if (err.message) {
-        const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-        setError('Error: ' + err.message + '\n\nMake sure the backend is running on ' + backendUrl.replace('/api', ''));
-      } else {
-        setError('Failed to generate YAML. Please check your flow configuration and backend connection.');
-      }
+      setError('Error generating YAML: ' + (err.message || 'Unknown error'));
+      setYaml('# Error occurred during generation\n# Check the error message above');
     } finally {
       setLoading(false);
     }

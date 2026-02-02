@@ -1,7 +1,8 @@
 import { FileDown, Trash2, Save, FolderOpen, Code2, BookOpen } from 'lucide-react';
 import { useFlowStore } from '@/stores/flowStore';
 import { useState } from 'react';
-import axios from 'axios';
+import { yamlGenerator } from '@/services/yamlGenerator';
+import { flowStorage } from '@/services/flowStorage';
 
 interface ToolbarProps {
   onShowCode: () => void;
@@ -9,7 +10,7 @@ interface ToolbarProps {
 }
 
 export function Toolbar({ onShowCode, onShowDemos }: ToolbarProps) {
-  const { nodes, edges, clearFlow } = useFlowStore();
+  const { nodes, edges, clearFlow, loadFlow } = useFlowStore();
   const [isExporting, setIsExporting] = useState(false);
 
   const handleClear = () => {
@@ -29,32 +30,28 @@ export function Toolbar({ onShowCode, onShowDemos }: ToolbarProps) {
     setIsExporting(true);
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-      const response = await axios.post(`${apiUrl}/flows/generate`, {
-        nodes,
-        edges,
-      });
-
-      if (response.data.success) {
-        const yamlContent = response.data.data.output.content;
-
-        // Create a download
-        const blob = new Blob([yamlContent], { type: 'text/yaml' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'kong-config.yaml';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+      // Validate flow before generation
+      const validationErrors = yamlGenerator.validateFlow(nodes, edges);
+      if (validationErrors.length > 0) {
+        alert('Validation errors:\n\n' + validationErrors.join('\n'));
+        return;
       }
+
+      // Generate YAML client-side (no backend needed!)
+      const yamlContent = yamlGenerator.generateYAML(nodes, edges);
+
+      // Create a download
+      const blob = new Blob([yamlContent], { type: 'text/yaml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'kong-config.yaml';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     } catch (error: any) {
-      if (error.response?.data?.errors) {
-        alert('Validation errors:\n' + error.response.data.errors.join('\n'));
-      } else {
-        alert('Failed to generate YAML. Please check your flow configuration.');
-      }
+      alert('Failed to generate YAML: ' + (error.message || 'Unknown error'));
       // Only log in development
       if (import.meta.env.DEV) {
         console.error('Export error:', error);
@@ -65,13 +62,80 @@ export function Toolbar({ onShowCode, onShowDemos }: ToolbarProps) {
   };
 
   const handleSave = () => {
-    // TODO: Implement save to backend
-    alert('Save functionality coming soon!');
+    if (nodes.length === 0) {
+      alert('No nodes to save. Add some nodes to your flow first.');
+      return;
+    }
+
+    const flowName = prompt('Enter a name for this flow:', 'My Kong Flow');
+    if (!flowName) return; // User cancelled
+
+    const flowDescription = prompt('Enter a description (optional):', '') || '';
+
+    try {
+      const savedFlow = flowStorage.saveFlow({
+        name: flowName,
+        description: flowDescription,
+        nodes,
+        edges,
+      });
+
+      alert(`Flow "${savedFlow.name}" saved successfully!`);
+    } catch (error: any) {
+      alert('Failed to save flow: ' + (error.message || 'Unknown error'));
+      if (import.meta.env.DEV) {
+        console.error('Save error:', error);
+      }
+    }
   };
 
   const handleLoad = () => {
-    // TODO: Implement load from backend
-    alert('Load functionality coming soon!');
+    try {
+      const flows = flowStorage.getAllFlows();
+
+      if (flows.length === 0) {
+        alert('No saved flows found. Save a flow first.');
+        return;
+      }
+
+      // Create a simple selection dialog
+      const flowList = flows
+        .map((f, idx) => `${idx + 1}. ${f.name} (${f.nodes.length} nodes, updated: ${new Date(f.updated_at).toLocaleDateString()})`)
+        .join('\n');
+
+      const selection = prompt(
+        `Select a flow to load:\n\n${flowList}\n\nEnter the number (1-${flows.length}):`,
+        '1'
+      );
+
+      if (!selection) return; // User cancelled
+
+      const flowIndex = parseInt(selection) - 1;
+      if (isNaN(flowIndex) || flowIndex < 0 || flowIndex >= flows.length) {
+        alert('Invalid selection');
+        return;
+      }
+
+      const selectedFlow = flows[flowIndex];
+
+      // Confirm before loading (will clear current flow)
+      if (nodes.length > 0) {
+        const confirm = window.confirm(
+          `Loading "${selectedFlow.name}" will replace your current flow. Continue?`
+        );
+        if (!confirm) return;
+      }
+
+      // Load the flow using flowStore
+      loadFlow(selectedFlow);
+      alert(`Flow "${selectedFlow.name}" loaded successfully!`);
+
+    } catch (error: any) {
+      alert('Failed to load flow: ' + (error.message || 'Unknown error'));
+      if (import.meta.env.DEV) {
+        console.error('Load error:', error);
+      }
+    }
   };
 
   return (
