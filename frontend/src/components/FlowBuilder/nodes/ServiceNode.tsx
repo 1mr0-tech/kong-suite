@@ -10,10 +10,21 @@ function ServiceNode({ data, selected }: NodeProps) {
         selected ? 'border-blue-500' : 'border-blue-300'
       }`}
     >
-      {/* Target handles - for incoming connections from Routes and Plugins */}
-      <Handle type="target" position={Position.Top} id="top" className="w-3 h-3" />
-      <Handle type="target" position={Position.Left} id="left" className="w-3 h-3" />
-      <Handle type="target" position={Position.Right} id="right" className="w-3 h-3" />
+      {/* Top handles - both source and target for maximum flexibility */}
+      <Handle type="target" position={Position.Top} id="top-target" className="w-3 h-3 !bg-blue-500" />
+      <Handle type="source" position={Position.Top} id="top-source" className="w-3 h-3 !bg-blue-500" />
+
+      {/* Left handles */}
+      <Handle type="target" position={Position.Left} id="left-target" className="w-3 h-3 !bg-blue-500" />
+      <Handle type="source" position={Position.Left} id="left-source" className="w-3 h-3 !bg-blue-500" />
+
+      {/* Right handles */}
+      <Handle type="target" position={Position.Right} id="right-target" className="w-3 h-3 !bg-blue-500" />
+      <Handle type="source" position={Position.Right} id="right-source" className="w-3 h-3 !bg-blue-500" />
+
+      {/* Bottom handles */}
+      <Handle type="target" position={Position.Bottom} id="bottom-target" className="w-3 h-3 !bg-blue-500" />
+      <Handle type="source" position={Position.Bottom} id="bottom-source" className="w-3 h-3 !bg-blue-500" />
 
       <div className="flex items-center gap-2 mb-2">
         <div className="p-1.5 bg-blue-100 rounded">
@@ -31,9 +42,6 @@ function ServiceNode({ data, selected }: NodeProps) {
           {data.config.protocol}://{data.config.host}:{data.config.port}
         </div>
       )}
-
-      {/* Source handle - for outgoing connections to Upstreams */}
-      <Handle type="source" position={Position.Bottom} id="bottom" className="w-3 h-3" />
     </div>
   );
 }

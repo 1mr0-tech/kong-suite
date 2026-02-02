@@ -5,6 +5,7 @@ import ReactFlow, {
   MiniMap,
   Panel,
   useReactFlow,
+  ConnectionMode,
   type EdgeTypes,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -88,6 +89,7 @@ export function FlowCanvas() {
           animated: false,
           style: { strokeWidth: 2 },
         }}
+        connectionMode={ConnectionMode.Loose}
         fitView
         className="bg-gray-50"
       >
