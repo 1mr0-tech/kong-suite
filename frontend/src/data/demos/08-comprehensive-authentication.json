@@ -1,0 +1,354 @@
+{
+    "id": "comprehensive-authentication",
+    "name": "Multi-Layer Authentication & Authorization",
+    "description": "Production authentication patterns with multiple auth methods, consumer groups, and API key + JWT combination.",
+    "difficulty": "intermediate",
+    "category": "security",
+    "tags": [
+        "authentication",
+        "authorization",
+        "security",
+        "jwt",
+        "api-key",
+        "consumers"
+    ],
+    "learningObjectives": [
+        "Understand different authentication plugins in Kong",
+        "Configure API key authentication for service-to-service communication",
+        "Implement JWT for user authentication",
+        "Create and manage consumers",
+        "Apply different auth strategies to different routes",
+        "Understand the Kong authentication request flow"
+    ],
+    "flow": {
+        "nodes": [
+            {
+                "id": "route-public",
+                "type": "route",
+                "position": {
+                    "x": 150,
+                    "y": 100
+                },
+                "data": {
+                    "label": "Public API (No Auth)",
+                    "type": "route",
+                    "config": {
+                        "name": "public-api",
+                        "protocols": [
+                            "http",
+                            "https"
+                        ],
+                        "methods": [
+                            "GET"
+                        ],
+                        "paths": [
+                            "/public",
+                            "/health"
+                        ],
+                        "strip_path": false,
+                        "preserve_host": false
+                    }
+                }
+            },
+            {
+                "id": "route-user-api",
+                "type": "route",
+                "position": {
+                    "x": 150,
+                    "y": 250
+                },
+                "data": {
+                    "label": "User API (JWT)",
+                    "type": "route",
+                    "config": {
+                        "name": "user-api",
+                        "protocols": [
+                            "http",
+                            "https"
+                        ],
+                        "methods": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "DELETE"
+                        ],
+                        "paths": [
+                            "/api/user"
+                        ],
+                        "strip_path": false,
+                        "preserve_host": false
+                    }
+                }
+            },
+            {
+                "id": "route-internal-api",
+                "type": "route",
+                "position": {
+                    "x": 150,
+                    "y": 400
+                },
+                "data": {
+                    "label": "Internal API (API Key)",
+                    "type": "route",
+                    "config": {
+                        "name": "internal-api",
+                        "protocols": [
+                            "http",
+                            "https"
+                        ],
+                        "methods": [
+                            "GET",
+                            "POST"
+                        ],
+                        "paths": [
+                            "/api/internal"
+                        ],
+                        "strip_path": false,
+                        "preserve_host": false
+                    }
+                }
+            },
+            {
+                "id": "service-main",
+                "type": "service",
+                "position": {
+                    "x": 500,
+                    "y": 250
+                },
+                "data": {
+                    "label": "Main Application",
+                    "type": "service",
+                    "config": {
+                        "name": "main-app",
+                        "protocol": "http",
+                        "host": "app.internal",
+                        "port": 8080,
+                        "path": "",
+                        "retries": 3,
+                        "connect_timeout": 5000,
+                        "write_timeout": 60000,
+                        "read_timeout": 60000
+                    }
+                }
+            },
+            {
+                "id": "plugin-jwt",
+                "type": "plugin",
+                "position": {
+                    "x": 325,
+                    "y": 250
+                },
+                "data": {
+                    "label": "JWT Authentication",
+                    "type": "plugin",
+                    "config": {
+                        "name": "jwt",
+                        "enabled": true,
+                        "config": {
+                            "key_claim_name": "kid",
+                            "secret_is_base64": false,
+                            "claims_to_verify": [
+                                "exp"
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "id": "plugin-key-auth",
+                "type": "plugin",
+                "position": {
+                    "x": 325,
+                    "y": 400
+                },
+                "data": {
+                    "label": "API Key Authentication",
+                    "type": "plugin",
+                    "config": {
+                        "name": "key-auth",
+                        "enabled": true,
+                        "config": {
+                            "key_names": [
+                                "apikey",
+                                "X-API-Key"
+                            ],
+                            "hide_credentials": true
+                        }
+                    }
+                }
+            },
+            {
+                "id": "consumer-mobile-app",
+                "type": "consumer",
+                "position": {
+                    "x": 50,
+                    "y": 200
+                },
+                "data": {
+                    "label": "Mobile App",
+                    "type": "consumer",
+                    "config": {
+                        "username": "mobile-app-v1",
+                        "custom_id": "mobile-001"
+                    }
+                }
+            },
+            {
+                "id": "consumer-backend-service",
+                "type": "consumer",
+                "position": {
+                    "x": 50,
+                    "y": 400
+                },
+                "data": {
+                    "label": "Backend Service",
+                    "type": "consumer",
+                    "config": {
+                        "username": "analytics-service",
+                        "custom_id": "service-analytics"
+                    }
+                }
+            },
+            {
+                "id": "plugin-rate-limit-user",
+                "type": "plugin",
+                "position": {
+                    "x": 50,
+                    "y": 250
+                },
+                "data": {
+                    "label": "User Rate Limit",
+                    "type": "plugin",
+                    "config": {
+                        "name": "rate-limiting",
+                        "enabled": true,
+                        "config": {
+                            "minute": 60,
+                            "hour": 1000,
+                            "policy": "local"
+                        }
+                    }
+                }
+            }
+        ],
+        "edges": [
+            {
+                "id": "route-public-service-main",
+                "source": "route-public",
+                "target": "service-main",
+                "type": "smoothstep"
+            },
+            {
+                "id": "route-user-api-service-main",
+                "source": "route-user-api",
+                "target": "service-main",
+                "type": "smoothstep"
+            },
+            {
+                "id": "route-internal-api-service-main",
+                "source": "route-internal-api",
+                "target": "service-main",
+                "type": "smoothstep"
+            },
+            {
+                "id": "plugin-jwt-route-user-api",
+                "source": "plugin-jwt",
+                "target": "route-user-api",
+                "type": "smoothstep"
+            },
+            {
+                "id": "plugin-key-auth-route-internal-api",
+                "source": "plugin-key-auth",
+                "target": "route-internal-api",
+                "type": "smoothstep"
+            },
+            {
+                "id": "plugin-rate-limit-user-consumer-mobile-app",
+                "source": "plugin-rate-limit-user",
+                "target": "consumer-mobile-app",
+                "type": "smoothstep"
+            },
+            {
+                "id": "consumer-mobile-app-plugin-jwt",
+                "source": "consumer-mobile-app",
+                "target": "plugin-jwt",
+                "type": "smoothstep"
+            },
+            {
+                "id": "consumer-backend-service-plugin-key-auth",
+                "source": "consumer-backend-service",
+                "target": "plugin-key-auth",
+                "type": "smoothstep"
+            }
+        ]
+    },
+    "explanation": {
+        "overview": "This demonstrates **Kong's authentication and authorization ecosystem**. Instead of each API endpoint implementing its own authentication, Kong acts as the **security gateway**, validating credentials before requests reach your backend. This pattern shows three common security levels: public (no auth), user-facing (JWT tokens), and service-to-service (API keys).",
+        "architecture": "```mermaid\nsequenceDiagram\n    participant User as User (Mobile App)\n    participant Service as Backend Service\n    participant Kong as Kong Gateway\n    participant Auth as Authentication\n    participant API as Backend API\n    \n    User-\u003e\u003eKong: GET /api/user?token=JWT\n    Kong-\u003e\u003eAuth: Validate JWT\n    Auth--\u003e\u003eKong: ✓ Valid (Consumer: mobile-app-v1)\n    Kong--\u003e\u003eAuth: Check Rate Limit\n    Auth--\u003e\u003eKong: ✓ Within limits (60/min)\n    Kong-\u003e\u003eAPI: Forward request\n    API--\u003e\u003eKong: Response\n    Kong--\u003e\u003eUser: Response\n    \n    Service-\u003e\u003eKong: POST /api/internal (X-API-Key: abc123)\n    Kong-\u003e\u003eAuth: Validate API Key\n    Auth--\u003e\u003eKong: ✓ Valid (Consumer: analytics-service)\n    Kong-\u003e\u003eAPI: Forward request\n    API--\u003e\u003eKong: Response\n    Kong--\u003e\u003eService: Response\n    \n    style Kong fill:#4F46E5,color:#fff\n    style Auth fill:#EF4444,color:#fff\n    style API fill:#10B981,color:#fff\n```",
+        "steps": [
+            {
+                "title": "Three Security Levels",
+                "description": "This setup demonstrates three common patterns: **(1) Public routes** (/public, /health) have no authentication - anyone can access them. **(2) User routes** (/api/user) use JWT tokens - typically for mobile/web apps where users log in. **(3) Internal routes** (/api/internal) use API keys - for service-to-service communication.",
+                "tip": "In production, you'd also add HTTPS/TLS and possibly IP allowlisting for the internal API."
+            },
+            {
+                "title": "JWT Authentication Flow",
+                "description": "The JWT plugin validates JSON Web Tokens in the Authorization header. When a user logs in (via a separate auth service), they get a JWT token. For subsequent API calls, they include the token, Kong validates it (checks signature and expiration), and if valid, forwards the request to the backend. The backend receives a pre-authenticated request.",
+                "tip": "JWT is ideal for stateless authentication. Kong doesn't need to query a database - it validates the token's signature cryptographically."
+            },
+            {
+                "title": "API Key Authentication",
+                "description": "The key-auth plugin looks for an API key in the request header (X-API-Key or apikey). Each backend service (consumer) has its own API key stored in Kong. This is perfect for service-to-service calls where you have a fixed set of known clients.",
+                "tip": "API keys should be long, random, and rotated regularly. Store them in secrets management (AWS Secrets Manager, HashiCorp Vault)."
+            },
+            {
+                "title": "Consumers as Identities",
+                "description": "Consumers represent API clients in Kong. 'mobile-app-v1' represents your mobile application, 'analytics-service' represents your internal analytics service. Each consumer can have credentials (JWT secrets, API keys) and consumer-specific policies (rate limits, ACLs).",
+                "tip": "Use custom_id to link Kong consumers to your own user database. For example, custom_id could be the user ID from your auth database."
+            },
+            {
+                "title": "Per-Consumer Rate Limiting",
+                "description": "The rate limit plugin is attached to the mobile-app consumer, limiting it to 60 requests per minute. This protects your API from a single client (app version) overwhelming the system, either accidentally (buggy code in a retry loop) or maliciously (abuse).",
+                "tip": "You can have different rate limits for different consumer tiers (free users vs premium users)."
+            }
+        ],
+        "keyTakeaways": [
+            "Kong centralizes authentication, removing this complexity from your backend services",
+            "JWT is best for user authentication (stateless, includes claims about the user)",
+            "API keys are best for service-to-service authentication (simple, easy to rotate)",
+            "Public routes (health checks, marketing pages) can skip authentication entirely",
+            "Consumers let you apply per-client policies like rate limits and access controls",
+            "The backend receives pre-authenticated requests - it knows the request is valid",
+            "Kong adds X-Consumer-Username headers so your backend knows which consumer made the request"
+        ]
+    },
+    "testInstructions": "After deploying this configuration:\n\n1. Test public route (no auth required):\n   curl http://localhost:8000/public\n   # Should work without any credentials\n\n2. Test user API without JWT (should fail):\n   curl http://localhost:8000/api/user\n   # Should return 401 Unauthorized\n\n3. Test user API with valid JWT:\n   # First, create a JWT credential for the mobile-app consumer in Kong\n   # Then:\n   curl -H \"Authorization: Bearer \u003cYOUR_JWT_TOKEN\u003e\" http://localhost:8000/api/user\n   # Should forward to backend\n\n4. Test internal API with API key:\n   curl -H \"X-API-Key: \u003cAPI_KEY_FOR_ANALYTICS_SERVICE\u003e\" http://localhost:8000/api/internal\n   # Should forward to backend\n\n5. Test rate limiting:\n   # Send 61 requests in one minute from mobile app\n   # Request #61 should be rate limited",
+    "expectedOutput": "Public route: {\"status\": \"ok\", \"message\": \"Public API responding\"}\n\nNo JWT: {\"message\": \"Unauthorized\"}\n\nValid JWT: {\"user\": {...}, \"headers\": {\"X-Consumer-Username\": \"mobile-app-v1\"}}\n\nValid API Key: {\"data\": [...], \"consumer\": \"analytics-service\"}\n\nRate limited: {\"message\": \"API rate limit exceeded\"}",
+    "commonMistakes": [
+        {
+            "mistake": "Forgetting to create consumers and credentials",
+            "fix": "After enabling auth plugins, you must create consumers and add credentials to them",
+            "explanation": "The plugins alone don't create users. You need to POST to Kong's Admin API to create consumers and add JWT secrets or API keys."
+        },
+        {
+            "mistake": "Sending JWT in wrong header format",
+            "fix": "Use 'Authorization: Bearer \u003cTOKEN\u003e' not 'Authorization: \u003cTOKEN\u003e'",
+            "explanation": "The JWT plugin expects the standard Bearer token format defined in OAuth 2.0."
+        },
+        {
+            "mistake": "Using the same API key for multiple services",
+            "fix": "Create separate consumers with separate API keys for each service",
+            "explanation": "This allows you to revoke access for one service without affecting others, and track usage per service."
+        },
+        {
+            "mistake": "Not hiding credentials from backend",
+            "fix": "Set hide_credentials: true in auth plugins",
+            "explanation": "This strips the Authorization header before forwarding to backend, so credentials don't leak into logs."
+        }
+    ],
+    "realWorldUseCase": "**SaaS Platform Security**: Imagine a project management SaaS like Asana. They have: (1) A website with public marketing pages (no auth), (2) A React web app and iOS/Android apps where users log in and get JWT tokens, (3) Internal microservices (notification service, analytics service) that call each other using API keys. Kong sits at the edge, enforcing all authentication. The backend services can trust that if a request reaches them, it's already authenticated. This also makes it easy to add new clients (like a CLI tool or integration) without changing backend code.",
+    "relatedDemos": [
+        "microservices-architecture",
+        "simple-api-gateway"
+    ]
+}

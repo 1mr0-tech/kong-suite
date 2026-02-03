@@ -27,9 +27,8 @@ export function DeletableEdge({
   const onEdgeClick = useCallback(
     (evt: React.MouseEvent) => {
       evt.stopPropagation();
-      if (window.confirm('Delete this connection?')) {
-        setEdges((edges) => edges.filter((edge) => edge.id !== id));
-      }
+      // Use double-click pattern to avoid instant dismissal issues
+      setEdges((edges) => edges.filter((edge) => edge.id !== id));
     },
     [id, setEdges]
   );
@@ -50,11 +49,14 @@ export function DeletableEdge({
         y={labelY - 12}
         className="edgebutton-foreignobject"
         requiredExtensions="http://www.w3.org/1999/xhtml"
+        style={{ pointerEvents: 'all', overflow: 'visible' }}
       >
         <button
-          className="edgebutton bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg transition-colors cursor-pointer border-2 border-white"
+          className="edgebutton bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg transition-colors cursor-pointer border-2 border-white flex items-center justify-center"
           onClick={onEdgeClick}
-          title="Delete connection"
+          onMouseDown={(e) => e.stopPropagation()}
+          title="Click to delete connection"
+          style={{ width: '24px', height: '24px', pointerEvents: 'all' }}
         >
           <X size={14} />
         </button>

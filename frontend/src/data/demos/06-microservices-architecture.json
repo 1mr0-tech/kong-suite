@@ -1,0 +1,312 @@
+{
+    "id": "microservices-architecture",
+    "name": "Microservices API Gateway",
+    "description": "Real-world microservices architecture with Kong as the central API gateway for multiple backend services.",
+    "difficulty": "intermediate",
+    "category": "getting-started",
+    "tags": [
+        "microservices",
+        "architecture",
+        "routing",
+        "production"
+    ],
+    "learningObjectives": [
+        "Understand Kong as a centralized API gateway for microservices",
+        "Configure multiple services and routes for different microservices",
+        "Implement path-based routing to different backends",
+        "Apply service-level rate limiting",
+        "Set up shared authentication across services"
+    ],
+    "flow": {
+        "nodes": [
+            {
+                "id": "service-users",
+                "type": "service",
+                "position": {
+                    "x": 500,
+                    "y": 100
+                },
+                "data": {
+                    "label": "Users Service",
+                    "type": "service",
+                    "config": {
+                        "name": "users-service",
+                        "protocol": "http",
+                        "host": "users-api.internal",
+                        "port": 8080,
+                        "path": "/v1",
+                        "retries": 3,
+                        "connect_timeout": 5000,
+                        "write_timeout": 60000,
+                        "read_timeout": 60000
+                    }
+                }
+            },
+            {
+                "id": "route-users",
+                "type": "route",
+                "position": {
+                    "x": 150,
+                    "y": 100
+                },
+                "data": {
+                    "label": "Users Routes",
+                    "type": "route",
+                    "config": {
+                        "name": "users-route",
+                        "protocols": [
+                            "http",
+                            "https"
+                        ],
+                        "methods": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "DELETE"
+                        ],
+                        "paths": [
+                            "/api/users",
+                            "/api/auth"
+                        ],
+                        "strip_path": false,
+                        "preserve_host": false
+                    }
+                }
+            },
+            {
+                "id": "service-orders",
+                "type": "service",
+                "position": {
+                    "x": 500,
+                    "y": 250
+                },
+                "data": {
+                    "label": "Orders Service",
+                    "type": "service",
+                    "config": {
+                        "name": "orders-service",
+                        "protocol": "http",
+                        "host": "orders-api.internal",
+                        "port": 8080,
+                        "path": "/v1",
+                        "retries": 3,
+                        "connect_timeout": 5000,
+                        "write_timeout": 60000,
+                        "read_timeout": 60000
+                    }
+                }
+            },
+            {
+                "id": "route-orders",
+                "type": "route",
+                "position": {
+                    "x": 150,
+                    "y": 250
+                },
+                "data": {
+                    "label": "Orders Routes",
+                    "type": "route",
+                    "config": {
+                        "name": "orders-route",
+                        "protocols": [
+                            "http",
+                            "https"
+                        ],
+                        "methods": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "DELETE"
+                        ],
+                        "paths": [
+                            "/api/orders"
+                        ],
+                        "strip_path": false,
+                        "preserve_host": false
+                    }
+                }
+            },
+            {
+                "id": "service-products",
+                "type": "service",
+                "position": {
+                    "x": 500,
+                    "y": 400
+                },
+                "data": {
+                    "label": "Products Service",
+                    "type": "service",
+                    "config": {
+                        "name": "products-service",
+                        "protocol": "http",
+                        "host": "products-api.internal",
+                        "port": 8080,
+                        "path": "/v1",
+                        "retries": 3,
+                        "connect_timeout": 5000,
+                        "write_timeout": 60000,
+                        "read_timeout": 60000
+                    }
+                }
+            },
+            {
+                "id": "route-products",
+                "type": "route",
+                "position": {
+                    "x": 150,
+                    "y": 400
+                },
+                "data": {
+                    "label": "Products Routes",
+                    "type": "route",
+                    "config": {
+                        "name": "products-route",
+                        "protocols": [
+                            "http",
+                            "https"
+                        ],
+                        "methods": [
+                            "GET"
+                        ],
+                        "paths": [
+                            "/api/products",
+                            "/api/catalog"
+                        ],
+                        "strip_path": false,
+                        "preserve_host": false
+                    }
+                }
+            },
+            {
+                "id": "plugin-jwt",
+                "type": "plugin",
+                "position": {
+                    "x": 325,
+                    "y": 100
+                },
+                "data": {
+                    "label": "JWT Authentication",
+                    "type": "plugin",
+                    "config": {
+                        "name": "jwt",
+                        "enabled": true,
+                        "config": {
+                            "key_claim_name": "kid",
+                            "secret_is_base64": false
+                        }
+                    }
+                }
+            },
+            {
+                "id": "plugin-rate-limit",
+                "type": "plugin",
+                "position": {
+                    "x": 700,
+                    "y": 250
+                },
+                "data": {
+                    "label": "Global Rate Limit",
+                    "type": "plugin",
+                    "config": {
+                        "name": "rate-limiting",
+                        "enabled": true,
+                        "config": {
+                            "minute": 100,
+                            "policy": "local"
+                        }
+                    }
+                }
+            }
+        ],
+        "edges": [
+            {
+                "id": "route-users-service-users",
+                "source": "route-users",
+                "target": "service-users",
+                "type": "smoothstep"
+            },
+            {
+                "id": "route-orders-service-orders",
+                "source": "route-orders",
+                "target": "service-orders",
+                "type": "smoothstep"
+            },
+            {
+                "id": "route-products-service-products",
+                "source": "route-products",
+                "target": "service-products",
+                "type": "smoothstep"
+            },
+            {
+                "id": "plugin-jwt-route-users",
+                "source": "plugin-jwt",
+                "target": "route-users",
+                "type": "smoothstep"
+            },
+            {
+                "id": "plugin-rate-limit-service-orders",
+                "source": "plugin-rate-limit",
+                "target": "service-orders",
+                "type": "smoothstep"
+            }
+        ]
+    },
+    "explanation": {
+        "overview": "This demonstrates Kong Gateway's most common use case: serving as a **centralized API gateway** for a microservices architecture. Instead of clients calling each microservice directly, all requests go through Kong, which routes them to the appropriate backend service based on the URL path. This pattern provides a single entry point, unified authentication, and centralized traffic management.",
+        "architecture": "```mermaid\nflowchart LR\n    Client[Client Apps] -->|HTTP Request| Kong[Kong Gateway :8000]\n    Kong -->|/api/users| UsersAPI[Users Service :8080]\n    Kong -->|/api/orders| OrdersAPI[Orders Service :8080]\n    Kong -->|/api/products| ProductsAPI[Products Service :8080]\n    \n    Kong -.->|JWT Auth| Auth[(Authentication)]\n    Kong -.->|Rate Limit| RL[(Rate Limiter)]\n    \n    style Kong fill:#4F46E5,color:#fff\n    style Client fill:#10B981,color:#fff\n    style Auth fill:#F59E0B,color:#fff\n    style RL fill:#EF4444,color:#fff\n```",
+        "steps": [
+            {
+                "title": "Three Microservices",
+                "description": "We have three independent microservices: **Users** (authentication & profiles), **Orders** (transaction management), and **Products** (catalog). Each runs on its own internal subdomain (e.g., users-api.internal:8080). Kong sits in front of all three.",
+                "tip": "In production, these would be separate deployments - possibly different teams, different codebases, even different programming languages."
+            },
+            {
+                "title": "Path-Based Routing",
+                "description": "Each route matches specific URL paths and forwards to the appropriate service. For example, requests to `/api/users` go to the Users service, `/api/orders` to the Orders service, and `/api/products` to the Products service. Kong acts as a smart reverse proxy.",
+                "tip": "You can also route based on HTTP method, headers, or host. Path-based routing is the most common pattern."
+            },
+            {
+                "title": "Shared Authentication (JWT Plugin)",
+                "description": "The JWT plugin is attached to the Users route, requiring all user-related requests to include a valid JSON Web Token. Once authenticated via Kong, the backend service doesn't need to re-authenticate - Kong validates the token first.",
+                "tip": "In a real setup, you'd attach JWT to all routes that need authentication. This centralizes your security layer."
+            },
+            {
+                "title": "Service-Level Rate Limiting",
+                "description": "The rate-limiting plugin is attached to the Orders service, limiting clients to 100 requests per minute to the orders API. This protects the Orders microservice from being overwhelmed during traffic spikes or potential DoS attacks.",
+                "tip": "You can apply different rate limits to different services based on their capacity and importance."
+            }
+        ],
+        "keyTakeaways": [
+            "Kong acts as a single entry point for all API traffic, hiding the complexity of your microservices",
+            "Path-based routing allows you to direct traffic to different services without exposing internal URLs",
+            "Shared plugins (auth, rate limiting) reduce code duplication across microservices",
+            "Each microservice can focus on its business logic while Kong handles cross-cutting concerns",
+            "This pattern scales well - you can add/remove microservices without changing client code"
+        ]
+    },
+    "testInstructions": "After deploying this configuration:\n\n1. Test the Users Service:\n   curl http://localhost:8000/api/users\n   (Should return 401 Unauthorized - JWT required)\n\n2. Test the Products Service (no auth):\n   curl http://localhost:8000/api/products\n   (Should forward to products-api.internal)\n\n3. Test rate limiting on Orders:\n   for i in {1..101}; do curl http://localhost:8000/api/orders; done\n   (Request #101 should be rate limited with HTTP 429)\n\n4. With a valid JWT token:\n   curl -H \"Authorization: Bearer \u003cYOUR_JWT_TOKEN\u003e\" http://localhost:8000/api/users",
+    "expectedOutput": "For unauth users route: {\"message\": \"Unauthorized\"}\nFor products: Product catalog JSON\nFor rate limit exceeded: {\"message\": \"API rate limit exceeded\"}",
+    "commonMistakes": [
+        {
+            "mistake": "Forgetting strip_path configuration",
+            "fix": "Set strip_path to false if you want to preserve the original path when forwarding to the backend",
+            "explanation": "If strip_path is true, Kong removes /api from the path. For microservices expecting the full path, set this to false."
+        },
+        {
+            "mistake": "Not securing all user-facing routes",
+            "fix": "Add authentication plugins to every route that handles sensitive data",
+            "explanation": "In this demo, only the users route has JWT. In production, you'd likely add authentication to orders as well."
+        },
+        {
+            "mistake": "Using global rate limits for all services",
+            "fix": "Apply different rate limits per service based on capacity",
+            "explanation": "A read-heavy service like Products can handle more traffic than a write-heavy service like Orders."
+        }
+    ],
+    "realWorldUseCase": "**E-commerce Platform**: Imagine an online store with separate teams building the user authentication system, order processing system, and product catalog. Kong sits at the edge, providing a unified API (api.yourstore.com) that routes requests to the appropriate microservice. The frontend app only needs to know one URL, and each backend team can deploy independently.",
+    "relatedDemos": [
+        "simple-api-gateway",
+        "secured-api-key-auth",
+        "load-balanced-service"
+    ]
+}

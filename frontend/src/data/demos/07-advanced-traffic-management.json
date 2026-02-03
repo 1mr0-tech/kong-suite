@@ -1,0 +1,309 @@
+{
+    "id": "advanced-traffic-management",
+    "name": "Advanced Traffic Management & Canary Deployment",
+    "description": "Production-ready traffic control patterns including canary releases, load balancing, and circuit breaking.",
+    "difficulty": "advanced",
+    "category": "traffic-management",
+    "tags": [
+        "canary",
+        "load-balancing",
+        "health-checks",
+        "production",
+        "advanced"
+    ],
+    "learningObjectives": [
+        "Implement canary deployment pattern with Kong",
+        "Configure load balancing across multiple upstream targets",
+        "Set up health checks for automatic failover",
+        "Use weighted routing for gradual traffic migration",
+        "Understand Kong's upstream and target entities"
+    ],
+    "flow": {
+        "nodes": [
+            {
+                "id": "route-api",
+                "type": "route",
+                "position": {
+                    "x": 100,
+                    "y": 250
+                },
+                "data": {
+                    "label": "API Route",
+                    "type": "route",
+                    "config": {
+                        "name": "api-route",
+                        "protocols": [
+                            "http",
+                            "https"
+                        ],
+                        "methods": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "DELETE"
+                        ],
+                        "paths": [
+                            "/api"
+                        ],
+                        "strip_path": false,
+                        "preserve_host": false
+                    }
+                }
+            },
+            {
+                "id": "service-stable",
+                "type": "service",
+                "position": {
+                    "x": 350,
+                    "y": 150
+                },
+                "data": {
+                    "label": "Stable Version (v1.0)",
+                    "type": "service",
+                    "config": {
+                        "name": "api-stable",
+                        "protocol": "http",
+                        "host": "api-v1.internal",
+                        "port": 8080,
+                        "path": "",
+                        "retries": 3,
+                        "connect_timeout": 5000,
+                        "write_timeout": 60000,
+                        "read_timeout": 60000
+                    }
+                }
+            },
+            {
+                "id": "service-canary",
+                "type": "service",
+                "position": {
+                    "x": 350,
+                    "y": 350
+                },
+                "data": {
+                    "label": "Canary Version (v2.0)",
+                    "type": "service",
+                    "config": {
+                        "name": "api-canary",
+                        "protocol": "http",
+                        "host": "api-v2.internal",
+                        "port": 8080,
+                        "path": "",
+                        "retries": 3,
+                        "connect_timeout": 5000,
+                        "write_timeout": 60000,
+                        "read_timeout": 60000
+                    }
+                }
+            },
+            {
+                "id": "upstream-loadbalancer",
+                "type": "upstream",
+                "position": {
+                    "x": 600,
+                    "y": 150
+                },
+                "data": {
+                    "label": "Load Balancer Pool",
+                    "type": "upstream",
+                    "config": {
+                        "name": "api-upstream",
+                        "algorithm": "round-robin",
+                        "slots": 1000,
+                        "healthchecks": {
+                            "active": {
+                                "healthy": {
+                                    "interval": 5,
+                                    "successes": 2
+                                },
+                                "unhealthy": {
+                                    "interval": 5,
+                                    "http_failures": 3
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "id": "plugin-cors",
+                "type": "plugin",
+                "position": {
+                    "x": 220,
+                    "y": 250
+                },
+                "data": {
+                    "label": "CORS",
+                    "type": "plugin",
+                    "config": {
+                        "name": "cors",
+                        "enabled": true,
+                        "config": {
+                            "origins": [
+                                "*"
+                            ],
+                            "methods": [
+                                "GET",
+                                "POST",
+                                "PUT",
+                                "DELETE"
+                            ],
+                            "credentials": true,
+                            "max_age": 3600
+                        }
+                    }
+                }
+            },
+            {
+                "id": "plugin-rate-limit-stable",
+                "type": "plugin",
+                "position": {
+                    "x": 550,
+                    "y": 100
+                },
+                "data": {
+                    "label": "Stable Rate Limit",
+                    "type": "plugin",
+                    "config": {
+                        "name": "rate-limiting",
+                        "enabled": true,
+                        "config": {
+                            "minute": 1000,
+                            "hour": 10000,
+                            "policy": "local"
+                        }
+                    }
+                }
+            },
+            {
+                "id": "plugin-rate-limit-canary",
+                "type": "plugin",
+                "position": {
+                    "x": 550,
+                    "y": 350
+                },
+                "data": {
+                    "label": "Canary Rate Limit (Conservative)",
+                    "type": "plugin",
+                    "config": {
+                        "name": "rate-limiting",
+                        "enabled": true,
+                        "config": {
+                            "minute": 100,
+                            "hour": 1000,
+                            "policy": "local"
+                        }
+                    }
+                }
+            }
+        ],
+        "edges": [
+            {
+                "id": "route-api-service-stable",
+                "source": "route-api",
+                "target": "service-stable",
+                "type": "smoothstep",
+                "label": "90% traffic"
+            },
+            {
+                "id": "route-api-service-canary",
+                "source": "route-api",
+                "target": "service-canary",
+                "type": "smoothstep",
+                "label": "10% traffic"
+            },
+            {
+                "id": "plugin-cors-route-api",
+                "source": "plugin-cors",
+                "target": "route-api",
+                "type": "smoothstep"
+            },
+            {
+                "id": "service-stable-upstream",
+                "source": "service-stable",
+                "target": "upstream-loadbalancer",
+                "type": "smoothstep"
+            },
+            {
+                "id": "plugin-rate-limit-stable-service-stable",
+                "source": "plugin-rate-limit-stable",
+                "target": "service-stable",
+                "type": "smoothstep"
+            },
+            {
+                "id": "plugin-rate-limit-canary-service-canary",
+                "source": "plugin-rate-limit-canary",
+                "target": "service-canary",
+                "type": "smoothstep"
+            }
+        ]
+    },
+    "explanation": {
+        "overview": "This demonstrates **advanced traffic management** patterns used in production environments. The key pattern here is **canary deployment** - gradually rolling out a new version (v2.0) to a small percentage of traffic (10%) while keeping most users (90%) on the stable version (v1.0). Kong handles the traffic splitting, load balancing, and automatic failover.",
+        "architecture": "```mermaid\nflowchart TB\n    Client[Client Requests] -->|100%| Kong[Kong Gateway]\n    \n    Kong -->|90% Traffic| Stable[Stable API v1.0]\n    Kong -->|10% Traffic| Canary[Canary API v2.0]\n    \n    Stable --> LB[Load Balancer <br/> Round Robin]\n    LB --> T1[Target 1]\n    LB --> T2[Target 2]\n    LB --> T3[Target 3]\n    \n    Canary --> LC[Limited Capacity]\n    \n    Kong -.->|Active Health Checks| HC[(Health Monitor)]\n    HC -.->|Check Every 5s| T1\n    HC -.->|Check Every 5s| T2\n    HC -.->|Check Every 5s| T3\n    \n    style Kong fill:#4F46E5,color:#fff\n    style Stable fill:#10B981,color:#fff\n    style Canary fill:#F59E0B,color:#fff\n    style HC fill:#EF4444,color:#fff\n    style LB fill:#8B5CF6,color:#fff\n```",
+        "steps": [
+            {
+                "title": "Canary Deployment Pattern",
+                "description": "The API route splits traffic between two versions: 90% goes to the stable v1.0 service, and 10% to the canary v2.0 service. This allows you to test the new version with real user traffic while minimizing risk. If v2.0 has issues, only 10% of users are affected.",
+                "tip": "Start with 5-10% canary traffic. Monitor metrics carefully. Gradually increase to 25%, 50%, 75%, then 100% over days or weeks."
+            },
+            {
+                "title": "Load Balancing with Upstream",
+                "description": "The stable service connects to an **Upstream** entity, which is Kong's load balancer. The upstream can distribute traffic across multiple backend targets (servers) using different algorithms (round-robin, least-connections, consistent-hashing). It also performs active health checks every 5 seconds.",
+                "tip": "In production, your upstream would have multiple targets - e.g., api-v1-pod1:8080, api-v1-pod2:8080, api-v1-pod3:8080."
+            },
+            {
+                "title": "Active Health Checks",
+                "description": "The upstream is configured with active health checks. Kong automatically sends HTTP requests to each target every 5 seconds. If a target fails 3 consecutive health checks, Kong marks it as unhealthy and stops sending traffic to it. After 2 successful checks, it's marked healthy again.",
+                "tip": "Health checks are critical for high availability. They ensure Kong never routes traffic to a failed backend."
+            },
+            {
+                "title": "Different Rate Limits for Canary",
+                "description": "The canary service has a more conservative rate limit (100 requests/minute vs 1000 for stable). This protects the new version from being overwhelmed while you're still testing its capacity and performance characteristics.",
+                "tip": "Always apply stricter limits to canary deployments until you're confident in their performance."
+            },
+            {
+                "title": "CORS for Cross-Origin Requests",
+                "description": "The CORS plugin is attached to the route, allowing your frontend application (running on a different domain) to make API calls. This is essential for modern web applications where the frontend and API are on separate domains.",
+                "tip": "In production, replace origins: ['*'] with your actual frontend domain for better security."
+            }
+        ],
+        "keyTakeaways": [
+            "Canary deployments let you test new versions with minimal risk to users",
+            "Kong's Upstream entity provides load balancing and automatic failover",
+            "Active health checks ensure traffic only goes to healthy backends",
+            "You can apply different policies (rate limits, timeouts) to different service versions",
+            "This pattern enables zero-downtime deployments and gradual rollouts",
+            "In case of issues, you can instantly route 100% traffic back to stable by updating the route"
+        ]
+    },
+    "testInstructions": "After deploying this configuration:\n\n1. Send 100 requests to observe traffic splitting:\n   for i in {1..100}; do\n     curl -i http://localhost:8000/api/health\n     echo \"\"\n   done\n   # Approximately 90 should hit v1.0, 10 should hit v2.0\n\n2. Test health check behavior:\n   # Stop one target server\n   docker stop api-v1-target-2\n   # Wait 15-20 seconds for health checks to detect failure\n   # Verify Kong stops routing to that target\n\n3. Test canary rate limiting:\n   # Send 101 requests to canary\n   # Should be rate limited after 100",
+    "expectedOutput": "Traffic distribution:\n90 requests to v1.0: {\"version\": \"1.0.0\", \"status\": \"stable\"}\n10 requests to v2.0: {\"version\": \"2.0.0\", \"status\": \"canary\"}\n\nAfter exceeding canary limit:\n{\"message\": \"API rate limit exceeded\"}",
+    "commonMistakes": [
+        {
+            "mistake": "Not configuring health checks",
+            "fix": "Always enable active health checks on upstreams in production",
+            "explanation": "Without health checks, Kong will keep sending traffic to failed backends, causing errors for users."
+        },
+        {
+            "mistake": "Deploying canary without reduced rate limits",
+            "fix": "Apply conservative rate limits to canary services",
+            "explanation": "New versions may have performance issues. Protect them with lower limits until proven stable."
+        },
+        {
+            "mistake": "Using 50/50 traffic split initially",
+            "fix": "Start with 5-10% canary traffic, increase gradually",
+            "explanation": "The point of canary is to limit blast radius. A 50/50 split exposes too many users to potential issues."
+        },
+        {
+            "mistake": "Forgetting to monitor canary metrics",
+            "fix": "Set up separate monitoring dashboards for canary vs stable",
+            "explanation": "You need to compare error rates, latency, and throughput between versions to know if the canary is healthy."
+        }
+    ],
+    "realWorldUseCase": "**Streaming Platform Deployment**: Imagine Netflix deploying a new recommendation algorithm. They can't just push it to all 200 million users at once - that's too risky. Instead, they use Kong to route 5% of traffic to the new algorithm (canary). They monitor user engagement, error rates, and performance metrics for a week. If everything looks good, they increase to 10%, then 25%, then 50%, until eventually 100% of users are on the new version. If there's a problem, they can instantly roll back to 0% canary with a single configuration change.",
+    "relatedDemos": [
+        "microservices-architecture",
+        "load-balanced-service"
+    ]
+}

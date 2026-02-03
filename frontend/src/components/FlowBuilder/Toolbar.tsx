@@ -1,24 +1,29 @@
-import { FileDown, Trash2, Save, FolderOpen, Code2, BookOpen } from 'lucide-react';
+import { FileDown, Trash2, Save, FolderOpen, Code2, BookOpen, GraduationCap } from 'lucide-react';
 import { useFlowStore } from '@/stores/flowStore';
 import { useState } from 'react';
 import { yamlGenerator } from '@/services/yamlGenerator';
 import { flowStorage } from '@/services/flowStorage';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 
 interface ToolbarProps {
   onShowCode: () => void;
   onShowDemos: () => void;
+  onShowKnowledge: () => void;
 }
 
-export function Toolbar({ onShowCode, onShowDemos }: ToolbarProps) {
+export function Toolbar({ onShowCode, onShowDemos, onShowKnowledge }: ToolbarProps) {
   const { nodes, edges, clearFlow, loadFlow } = useFlowStore();
   const [isExporting, setIsExporting] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const handleClear = () => {
     if (nodes.length === 0) return;
+    setShowClearConfirm(true);
+  };
 
-    if (window.confirm('Are you sure you want to clear the entire flow? This cannot be undone.')) {
-      clearFlow();
-    }
+  const confirmClear = () => {
+    clearFlow();
+    setShowClearConfirm(false);
   };
 
   const handleExportYAML = async () => {
@@ -181,6 +186,15 @@ export function Toolbar({ onShowCode, onShowDemos }: ToolbarProps) {
         Demo Flows
       </button>
 
+      <button
+        onClick={onShowKnowledge}
+        className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+        title="Kong Knowledge Base - Learn about entities and plugins"
+      >
+        <GraduationCap size={16} />
+        Knowledge
+      </button>
+
       <div className="w-px h-6 bg-gray-300" />
 
       <button
@@ -208,6 +222,17 @@ export function Toolbar({ onShowCode, onShowDemos }: ToolbarProps) {
       <div className="text-sm text-gray-500">
         {nodes.length} nodes • {edges.length} connections
       </div>
+
+      <ConfirmDialog
+        isOpen={showClearConfirm}
+        title="Clear Flow"
+        message="Are you sure you want to clear the entire flow? This action cannot be undone."
+        confirmText="Clear All"
+        cancelText="Cancel"
+        onConfirm={confirmClear}
+        onCancel={() => setShowClearConfirm(false)}
+        variant="danger"
+      />
     </div>
   );
 }

@@ -56,6 +56,7 @@ export interface KongPlugin {
   protocols?: Array<'http' | 'https' | 'grpc' | 'grpcs' | 'tcp' | 'tls' | 'udp'>;
   tags?: string[];
   consumer?: { id: string };
+  consumer_group?: { id: string };
   service?: { id: string };
   route?: { id: string };
   created_at?: number;
@@ -69,6 +70,20 @@ export interface KongConsumer {
   tags?: string[];
   created_at?: number;
   updated_at?: number;
+}
+
+export interface KongConsumerGroup {
+  id?: string;
+  name: string;
+  tags?: string[];
+  created_at?: number;
+  updated_at?: number;
+}
+
+// Mapping between Consumer and Consumer Group (many-to-many)
+export interface KongConsumerGroupMember {
+  consumer: { id: string };
+  consumer_group: { id: string };
 }
 
 export interface KongUpstream {

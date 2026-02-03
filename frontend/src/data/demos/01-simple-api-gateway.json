@@ -4,21 +4,26 @@
   "description": "Learn the basics: Route → Service. Your first Kong Gateway configuration.",
   "difficulty": "beginner",
   "category": "getting-started",
-  "tags": ["basic", "quickstart", "routing"],
-
+  "tags": [
+    "basic",
+    "quickstart",
+    "routing"
+  ],
   "learningObjectives": [
     "Understand the Route → Service relationship",
     "Configure basic HTTP routing rules",
     "Expose a backend service through Kong",
     "Test your first API gateway setup"
   ],
-
   "flow": {
     "nodes": [
       {
         "id": "service-1",
         "type": "service",
-        "position": { "x": 400, "y": 200 },
+        "position": {
+          "x": 400,
+          "y": 200
+        },
         "data": {
           "label": "HTTPBin Service",
           "type": "service",
@@ -38,16 +43,27 @@
       {
         "id": "route-1",
         "type": "route",
-        "position": { "x": 100, "y": 200 },
+        "position": {
+          "x": 100,
+          "y": 200
+        },
         "data": {
           "label": "API Route",
           "type": "route",
           "config": {
             "name": "httpbin-route",
-            "protocols": ["http", "https"],
-            "methods": ["GET", "POST"],
+            "protocols": [
+              "http",
+              "https"
+            ],
+            "methods": [
+              "GET",
+              "POST"
+            ],
             "hosts": [],
-            "paths": ["/api"],
+            "paths": [
+              "/api"
+            ],
             "strip_path": false,
             "preserve_host": false
           }
@@ -63,43 +79,41 @@
       }
     ]
   },
-
   "explanation": {
-    "overview": "This is the simplest Kong Gateway pattern. You're creating a gateway that forwards requests from clients to a backend service. Think of it like a smart router for your API.",
-
+    "overview": "This is the simplest Kong Gateway pattern and the foundation for understanding Kong. You're creating a gateway that forwards requests from clients to a backend service. Kong acts as a **smart reverse proxy** - it receives requests, applies policies (like authentication or rate limiting), and forwards them to your backend. Think of it like a security guard at a building entrance who checks IDs and logs visitors before letting them in.",
+    "architecture": "```mermaid\nflowchart LR\n    Client[Client<br/>Mobile/Web App] -->|HTTP Request<br/>/api/get| Kong[Kong Gateway<br/>:8000]\n    Kong -->|Validated Request| Backend[HTTPBin Service<br/>httpbin.org:443]\n    Backend -->|JSON Response| Kong\n    Kong -->|Response| Client\n    \n    style Kong fill:#4F46E5,color:#fff\n    style Client fill:#10B981,color:#fff\n    style Backend fill:#F59E0B,color:#fff\n```",
+    "requestFlow": "**Step-by-step Request Flow:**\n1. Client sends: `GET http://localhost:8000/api/get`\n2. Kong matches the request to the 'httpbin-route' (path: /api)\n3. Kong looks up which Service the route connects to\n4. Kong forwards: `GET https://httpbin.org:443/api/get`\n5. HTTPBin processes and returns JSON\n6. Kong forwards the response back to the client",
     "steps": [
       {
         "title": "Create a Service",
-        "description": "A Service in Kong represents your backend API. In this example, we're using HTTPBin (a public testing service at httpbin.org). In production, this would be your actual backend like users-api.internal:8080.",
+        "description": "A Service in Kong represents your backend API. In this example, we're using HTTPBin (a public testing service at httpbin.org). In production, this would be your actual backend like users-api.internal:8080. The Service defines WHERE to forward requests.",
         "nodeId": "service-1",
         "tip": "Always use HTTPS for production services to ensure secure communication between Kong and your backend."
       },
       {
         "title": "Create a Route",
-        "description": "A Route defines how clients access your service. This route matches any request to the path /api. When Kong receives a request to http://kong:8000/api, it knows to forward it to the HTTPBin service.",
+        "description": "A Route defines HOW clients access your service. This route matches any request to the path /api. When Kong receives a request to http://kong:8000/api, it knows to forward it to the HTTPBin service. Routes are the 'rules' that map incoming requests to backend services.",
         "nodeId": "route-1",
         "tip": "Routes can match on paths, methods, hosts, or headers. You can be very specific about what traffic gets routed where."
       },
       {
         "title": "Connect Route to Service",
-        "description": "This connection tells Kong: 'When a request matches this route, forward it to this service.' This is the core of Kong's request routing.",
+        "description": "This connection tells Kong: 'When a request matches this route, forward it to this service.' This is the core of Kong's request routing. **Every Route MUST connect to exactly one Service** - this is a fundamental Kong requirement.",
         "edgeId": "route-1-service-1",
-        "tip": "Every Route MUST connect to exactly one Service. This is a strict Kong requirement."
+        "tip": "In a typical architecture, you'll have multiple routes pointing to the same service (e.g., /api/v1/users and /api/v2/users both pointing to users-service)."
       }
     ],
-
     "keyTakeaways": [
-      "Routes define HOW clients access your APIs (matching rules)",
-      "Services define WHERE requests should be forwarded (backend location)",
-      "The Route → Service connection is mandatory and must be 1:1",
-      "Kong acts as a smart proxy, forwarding matched requests to your backend"
+      "Routes define HOW clients access your APIs (matching rules based on path, method, host, etc.)",
+      "Services define WHERE requests should be forwarded (backend location with host, port, protocol)",
+      "The Route → Service connection is mandatory and must be 1:1 per request",
+      "Kong acts as a smart reverse proxy, sitting between clients and your backend",
+      "This pattern enables you to change backend URLs without updating client code",
+      "You can add plugins to routes or services to enable auth, rate limiting, logging, etc."
     ]
   },
-
   "testInstructions": "After deploying this configuration:\n\n1. Send a test request:\n   curl http://localhost:8000/api/get\n\n2. You should receive a JSON response from HTTPBin showing your request details.\n\n3. Try different methods:\n   curl -X POST http://localhost:8000/api/post\n\nIf you get a response, congratulations! Your first Kong Gateway is working.",
-
   "expectedOutput": "{\n  \"args\": {},\n  \"headers\": {\n    \"Host\": \"httpbin.org\",\n    \"X-Forwarded-Host\": \"localhost\"\n  },\n  \"origin\": \"your-ip-address\",\n  \"url\": \"https://httpbin.org/get\"\n}",
-
   "commonMistakes": [
     {
       "mistake": "Not setting the service host",
@@ -117,7 +131,6 @@
       "explanation": "If strip_path is true, Kong removes /api from the path before forwarding. Usually you want to keep it."
     }
   ],
-
   "relatedDemos": [
     "api-with-rate-limiting",
     "secured-api-key-auth"

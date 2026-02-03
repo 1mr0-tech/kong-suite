@@ -6,35 +6,15 @@ import type { NodeProps } from 'reactflow';
 function ServiceNode({ data, selected }: NodeProps) {
   return (
     <div
-      className={`px-4 py-3 rounded-lg border-2 bg-white shadow-md min-w-[180px] ${
-        selected ? 'border-blue-500' : 'border-blue-300'
-      }`}
+      className={`px-4 py-3 rounded-lg border-2 bg-white shadow-md min-w-[180px] ${selected ? 'border-blue-500' : 'border-blue-300'
+        }`}
     >
-      {/* Top handles */}
-      <Handle
-        type="target"
-        position={Position.Top}
-        id="top-target"
-        className="w-3 h-3 !bg-blue-500"
-        style={{ left: '45%' }}
-        isConnectable={true}
-      />
+      {/* Source handles (for outgoing connections) */}
       <Handle
         type="source"
         position={Position.Top}
         id="top-source"
         className="w-3 h-3 !bg-blue-500"
-        style={{ left: '55%' }}
-        isConnectable={true}
-      />
-
-      {/* Left handles */}
-      <Handle
-        type="target"
-        position={Position.Left}
-        id="left-target"
-        className="w-3 h-3 !bg-blue-500"
-        style={{ top: '45%' }}
         isConnectable={true}
       />
       <Handle
@@ -42,17 +22,6 @@ function ServiceNode({ data, selected }: NodeProps) {
         position={Position.Left}
         id="left-source"
         className="w-3 h-3 !bg-blue-500"
-        style={{ top: '55%' }}
-        isConnectable={true}
-      />
-
-      {/* Right handles */}
-      <Handle
-        type="target"
-        position={Position.Right}
-        id="right-target"
-        className="w-3 h-3 !bg-blue-500"
-        style={{ top: '45%' }}
         isConnectable={true}
       />
       <Handle
@@ -60,17 +29,6 @@ function ServiceNode({ data, selected }: NodeProps) {
         position={Position.Right}
         id="right-source"
         className="w-3 h-3 !bg-blue-500"
-        style={{ top: '55%' }}
-        isConnectable={true}
-      />
-
-      {/* Bottom handles */}
-      <Handle
-        type="target"
-        position={Position.Bottom}
-        id="bottom-target"
-        className="w-3 h-3 !bg-blue-500"
-        style={{ left: '45%' }}
         isConnectable={true}
       />
       <Handle
@@ -78,7 +36,36 @@ function ServiceNode({ data, selected }: NodeProps) {
         position={Position.Bottom}
         id="bottom-source"
         className="w-3 h-3 !bg-blue-500"
-        style={{ left: '55%' }}
+        isConnectable={true}
+      />
+
+      {/* Target handles (for incoming connections) - overlapped with source handles */}
+      <Handle
+        type="target"
+        position={Position.Top}
+        id="top-target"
+        className="w-3 h-3 !bg-blue-500"
+        isConnectable={true}
+      />
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="left-target"
+        className="w-3 h-3 !bg-blue-500"
+        isConnectable={true}
+      />
+      <Handle
+        type="target"
+        position={Position.Right}
+        id="right-target"
+        className="w-3 h-3 !bg-blue-500"
+        isConnectable={true}
+      />
+      <Handle
+        type="target"
+        position={Position.Bottom}
+        id="bottom-target"
+        className="w-3 h-3 !bg-blue-500"
         isConnectable={true}
       />
 

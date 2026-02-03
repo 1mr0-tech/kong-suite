@@ -6,6 +6,9 @@ import apiWithRateLimiting from '@/data/demos/02-api-with-rate-limiting.json';
 import securedApiKeyAuth from '@/data/demos/03-secured-api-key-auth.json';
 import multiTierRateLimiting from '@/data/demos/04-multi-tier-rate-limiting.json';
 import loadBalancedService from '@/data/demos/05-load-balanced-service.json';
+import microservicesArchitecture from '@/data/demos/06-microservices-architecture.json';
+import advancedTrafficManagement from '@/data/demos/07-advanced-traffic-management.json';
+import comprehensiveAuthentication from '@/data/demos/08-comprehensive-authentication.json';
 
 // All available demos
 const ALL_DEMOS: DemoFlow[] = [
@@ -14,6 +17,9 @@ const ALL_DEMOS: DemoFlow[] = [
   securedApiKeyAuth,
   multiTierRateLimiting,
   loadBalancedService,
+  microservicesArchitecture,
+  advancedTrafficManagement,
+  comprehensiveAuthentication,
 ] as DemoFlow[];
 
 export class DemoService {

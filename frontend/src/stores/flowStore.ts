@@ -80,11 +80,13 @@ export const useFlowStore = create<FlowState>((set, get) => ({
       return;
     }
 
-    // Add edge
+    // Add edge with proper handle references
     const newEdge: Edge = {
-      id: `${connection.source}-${connection.target}`,
+      id: `${connection.source}-${connection.sourceHandle || 'default'}-${connection.target}-${connection.targetHandle || 'default'}`,
       source: connection.source,
       target: connection.target,
+      sourceHandle: connection.sourceHandle,
+      targetHandle: connection.targetHandle,
       type: 'smoothstep',
       animated: false,
       label: '', // Will be set by edge component if needed
