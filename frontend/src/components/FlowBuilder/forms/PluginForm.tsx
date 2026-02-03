@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AVAILABLE_PLUGINS, PLUGIN_CONFIGS } from '@/utils/nodeDefaults';
 import { Globe, Server, Route as RouteIcon, User, Info } from 'lucide-react';
 
@@ -30,6 +30,7 @@ export function PluginForm({ data, onSave, nodeId, edges = [], nodes = [] }: Plu
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isDirty },
     setValue,
   } = useForm<PluginFormData>({
@@ -37,12 +38,19 @@ export function PluginForm({ data, onSave, nodeId, edges = [], nodes = [] }: Plu
     defaultValues: data,
   });
 
+  // Reset form when data changes (e.g., switching nodes)
+  useEffect(() => {
+    reset(data);
+    setSelectedPlugin(data.name || 'rate-limiting');
+    setConfigJson(JSON.stringify(data.config || PLUGIN_CONFIGS[data.name] || {}, null, 2));
+  }, [data, reset]);
+
   const handlePluginChange = (pluginName: string) => {
     setSelectedPlugin(pluginName);
-    setValue('name', pluginName);
+    setValue('name', pluginName, { shouldDirty: true });
     const defaultConfig = PLUGIN_CONFIGS[pluginName] || {};
     setConfigJson(JSON.stringify(defaultConfig, null, 2));
-    setValue('config', defaultConfig);
+    setValue('config', defaultConfig, { shouldDirty: true });
   };
 
   const handleConfigChange = (value: string) => {

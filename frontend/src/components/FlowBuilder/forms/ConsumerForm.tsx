@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useEffect } from 'react';
 
 const consumerSchema = z.object({
   username: z.string().min(1, 'Username is required'),
@@ -18,11 +19,17 @@ export function ConsumerForm({ data, onSave }: ConsumerFormProps) {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isDirty },
   } = useForm<ConsumerFormData>({
     resolver: zodResolver(consumerSchema),
     defaultValues: data,
   });
+
+  // Reset form when data changes (e.g., switching nodes)
+  useEffect(() => {
+    reset(data);
+  }, [data, reset]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {

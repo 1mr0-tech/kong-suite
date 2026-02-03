@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useEffect } from 'react';
 
 const upstreamSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -21,6 +22,7 @@ export function UpstreamForm({ data, onSave }: UpstreamFormProps) {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isDirty },
   } = useForm<UpstreamFormData>({
     resolver: zodResolver(upstreamSchema),
@@ -32,6 +34,17 @@ export function UpstreamForm({ data, onSave }: UpstreamFormProps) {
       hash_fallback: data.hash_fallback || 'none',
     },
   });
+
+  // Reset form when data changes (e.g., switching nodes)
+  useEffect(() => {
+    reset({
+      ...data,
+      algorithm: data.algorithm || 'round-robin',
+      slots: data.slots || 10000,
+      hash_on: data.hash_on || 'none',
+      hash_fallback: data.hash_fallback || 'none',
+    });
+  }, [data, reset]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {

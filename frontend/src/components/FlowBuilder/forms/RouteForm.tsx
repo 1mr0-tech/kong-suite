@@ -2,6 +2,7 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Plus, X } from 'lucide-react';
+import { useEffect } from 'react';
 
 const routeSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -25,6 +26,7 @@ export function RouteForm({ data, onSave }: RouteFormProps) {
     register,
     control,
     handleSubmit,
+    reset,
     formState: { errors, isDirty },
   } = useForm<RouteFormData>({
     resolver: zodResolver(routeSchema),
@@ -35,6 +37,16 @@ export function RouteForm({ data, onSave }: RouteFormProps) {
       hosts: data.hosts || [],
     },
   });
+
+  // Reset form when data changes (e.g., switching nodes)
+  useEffect(() => {
+    reset({
+      ...data,
+      methods: data.methods || [],
+      paths: data.paths?.length > 0 ? data.paths : [''],
+      hosts: data.hosts || [],
+    });
+  }, [data, reset]);
 
   const { fields: pathFields, append: appendPath, remove: removePath } = useFieldArray({
     control: control as any,

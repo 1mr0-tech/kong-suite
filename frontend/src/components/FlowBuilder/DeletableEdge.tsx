@@ -37,7 +37,11 @@ export function DeletableEdge({
     <>
       <path
         id={id}
-        style={style}
+        style={{
+          stroke: '#b1b1b7',
+          strokeWidth: 2,
+          ...style,
+        }}
         className="react-flow__edge-path"
         d={edgePath}
         markerEnd={markerEnd}
