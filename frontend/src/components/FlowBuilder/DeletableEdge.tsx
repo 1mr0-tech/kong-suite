@@ -24,28 +24,46 @@ export function DeletableEdge({
     targetPosition,
   });
 
+  // Debug logging
+  if (import.meta.env.DEV) {
+    console.log('Edge render:', {
+      id,
+      sourceX,
+      sourceY,
+      targetX,
+      targetY,
+      edgePath: edgePath.substring(0, 50),
+      style,
+    });
+  }
+
   const onEdgeClick = useCallback(
     (evt: React.MouseEvent) => {
       evt.stopPropagation();
-      // Use double-click pattern to avoid instant dismissal issues
       setEdges((edges) => edges.filter((edge) => edge.id !== id));
     },
     [id, setEdges]
   );
 
   return (
-    <>
+    <g className="react-flow__edge">
       <path
         id={id}
         style={{
-          ...style,
-          stroke: style?.stroke || '#b1b1b7',
-          strokeWidth: style?.strokeWidth || 2,
+          stroke: '#3b82f6',
+          strokeWidth: 3,
           fill: 'none',
         }}
         className="react-flow__edge-path"
         d={edgePath}
         markerEnd={markerEnd}
+      />
+      <path
+        d={edgePath}
+        fill="none"
+        stroke="transparent"
+        strokeWidth={20}
+        className="react-flow__edge-interaction"
       />
       <foreignObject
         width={24}
@@ -54,18 +72,17 @@ export function DeletableEdge({
         y={labelY - 12}
         className="edgebutton-foreignobject"
         requiredExtensions="http://www.w3.org/1999/xhtml"
-        style={{ pointerEvents: 'all', overflow: 'visible' }}
       >
         <button
           className="edgebutton bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg transition-colors cursor-pointer border-2 border-white flex items-center justify-center"
           onClick={onEdgeClick}
           onMouseDown={(e) => e.stopPropagation()}
           title="Click to delete connection"
-          style={{ width: '24px', height: '24px', pointerEvents: 'all' }}
+          style={{ width: '24px', height: '24px' }}
         >
           <X size={14} />
         </button>
       </foreignObject>
-    </>
+    </g>
   );
 }

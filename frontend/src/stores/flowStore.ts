@@ -92,6 +92,11 @@ export const useFlowStore = create<FlowState>((set, get) => ({
       label: '', // Will be set by edge component if needed
     };
 
+    // Debug logging
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Creating edge:', newEdge);
+    }
+
     set({
       edges: [...edges, newEdge],
     });

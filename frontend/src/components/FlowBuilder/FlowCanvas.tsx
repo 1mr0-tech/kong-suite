@@ -15,8 +15,10 @@ import { useFlowStore } from '@/stores/flowStore';
 import { nodeTypes } from './nodes';
 import { DeletableEdge } from './DeletableEdge';
 
+// Temporarily disable custom edge to test if default React Flow edges work
 const edgeTypes: EdgeTypes = {
-  smoothstep: DeletableEdge,
+  // default: DeletableEdge,
+  // smoothstep: DeletableEdge,
 };
 
 export function FlowCanvas() {
@@ -32,6 +34,11 @@ export function FlowCanvas() {
     setSelectedNode,
     addNode,
   } = useFlowStore();
+
+  // Debug logging
+  if (import.meta.env.DEV) {
+    console.log('FlowCanvas render - edges:', edges.length, edges);
+  }
 
   const handleNodeClick = useCallback(
     (_event: React.MouseEvent, node: any) => {
@@ -85,12 +92,15 @@ export function FlowCanvas() {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         defaultEdgeOptions={{
-          type: 'smoothstep',
-          animated: false,
-          style: { strokeWidth: 2, stroke: '#b1b1b7' },
+          animated: true,
+          style: {
+            strokeWidth: 4,
+            stroke: '#ff0000',
+          },
         }}
         connectionMode={ConnectionMode.Loose}
         fitView
+        deleteKeyCode="Delete"
         className="bg-gray-50"
       >
       <Background />
@@ -111,6 +121,9 @@ export function FlowCanvas() {
       <Panel position="top-left" className="bg-white px-4 py-2 rounded-lg shadow-md">
         <div className="text-sm font-medium text-gray-700">
           {nodes.length} nodes, {edges.length} connections
+        </div>
+        <div className="text-xs text-red-600 font-bold mt-1">
+          {edges.length > 0 && `EDGES EXIST: ${JSON.stringify(edges[0])}`}
         </div>
       </Panel>
       </ReactFlow>
