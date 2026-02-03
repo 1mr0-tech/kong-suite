@@ -87,7 +87,7 @@ export function FlowCanvas() {
         defaultEdgeOptions={{
           type: 'smoothstep',
           animated: false,
-          style: { strokeWidth: 2 },
+          style: { strokeWidth: 2, stroke: '#b1b1b7' },
         }}
         connectionMode={ConnectionMode.Loose}
         fitView
