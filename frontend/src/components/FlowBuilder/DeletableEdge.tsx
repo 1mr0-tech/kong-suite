@@ -24,19 +24,6 @@ export function DeletableEdge({
     targetPosition,
   });
 
-  // Debug logging
-  if (import.meta.env.DEV) {
-    console.log('Edge render:', {
-      id,
-      sourceX,
-      sourceY,
-      targetX,
-      targetY,
-      edgePath: edgePath.substring(0, 50),
-      style,
-    });
-  }
-
   const onEdgeClick = useCallback(
     (evt: React.MouseEvent) => {
       evt.stopPropagation();
@@ -50,8 +37,7 @@ export function DeletableEdge({
       <path
         id={id}
         style={{
-          stroke: '#3b82f6',
-          strokeWidth: 3,
+          ...style,
           fill: 'none',
         }}
         className="react-flow__edge-path"

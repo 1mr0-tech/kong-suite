@@ -87,15 +87,11 @@ export const useFlowStore = create<FlowState>((set, get) => ({
       target: connection.target,
       sourceHandle: connection.sourceHandle,
       targetHandle: connection.targetHandle,
-      type: 'smoothstep',
-      animated: false,
+      // Don't specify type - let React Flow use default
+      // type: 'smoothstep',
+      // animated: false,
       label: '', // Will be set by edge component if needed
     };
-
-    // Debug logging
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Creating edge:', newEdge);
-    }
 
     set({
       edges: [...edges, newEdge],

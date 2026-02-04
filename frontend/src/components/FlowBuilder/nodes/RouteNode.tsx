@@ -9,37 +9,7 @@ function RouteNode({ data, selected }: NodeProps) {
       className={`px-4 py-3 rounded-lg border-2 bg-white shadow-md min-w-[180px] ${selected ? 'border-orange-500' : 'border-orange-300'
         }`}
     >
-      {/* Source handles (for outgoing connections) */}
-      <Handle
-        type="source"
-        position={Position.Top}
-        id="top-source"
-        className="w-3 h-3 !bg-orange-500"
-        isConnectable={true}
-      />
-      <Handle
-        type="source"
-        position={Position.Left}
-        id="left-source"
-        className="w-3 h-3 !bg-orange-500"
-        isConnectable={true}
-      />
-      <Handle
-        type="source"
-        position={Position.Right}
-        id="right-source"
-        className="w-3 h-3 !bg-orange-500"
-        isConnectable={true}
-      />
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        id="bottom-source"
-        className="w-3 h-3 !bg-orange-500"
-        isConnectable={true}
-      />
-
-      {/* Target handles (for incoming connections) */}
+      {/* Target handles (for incoming connections) - rendered first so source handles are on top */}
       <Handle
         type="target"
         position={Position.Top}
@@ -85,6 +55,36 @@ function RouteNode({ data, selected }: NodeProps) {
           {data.config.paths.join(', ')}
         </div>
       )}
+
+      {/* Source handles (for outgoing connections) - rendered last so they're on top */}
+      <Handle
+        type="source"
+        position={Position.Top}
+        id="top-source"
+        className="w-3 h-3 !bg-orange-500"
+        isConnectable={true}
+      />
+      <Handle
+        type="source"
+        position={Position.Left}
+        id="left-source"
+        className="w-3 h-3 !bg-orange-500"
+        isConnectable={true}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="right-source"
+        className="w-3 h-3 !bg-orange-500"
+        isConnectable={true}
+      />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="bottom-source"
+        className="w-3 h-3 !bg-orange-500"
+        isConnectable={true}
+      />
     </div>
   );
 }
